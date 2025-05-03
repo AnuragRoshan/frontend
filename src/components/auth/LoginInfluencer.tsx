@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import styled from "styled-components";
 import { sharedTheme } from "../../styles/theme/theme";
 import { MailIcon, LockIcon, FacebookIcon, InstagramIcon } from "lucide-react";

@@ -1,5 +1,5 @@
 // components/layout/Sidebar.tsx
-import React, { useState } from "react";
+import { useState } from "react";
 import styled from "styled-components";
 import { Link, useLocation } from "react-router-dom";
 import { sharedTheme, lightTheme } from "../../styles/theme/theme";
