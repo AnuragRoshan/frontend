@@ -20,7 +20,7 @@ const Overlay = styled.div<{ isVisible: boolean }>`
   backdrop-filter: blur(0.5px);
   z-index: ${sharedTheme.zIndex.modalBackdrop};
   opacity: ${({ isVisible }) => (isVisible ? 1 : 0)};
-  transition: opacity 0.3s ease;
+  transition: opacity 0.3s ease-out;
   pointer-events: ${({ isVisible }) => (isVisible ? "auto" : "none")};
 `;
 
@@ -56,15 +56,10 @@ const CloseButton = styled.button<{
   anchor: "left" | "right";
 }>`
   position: absolute;
-  top: 2px;
-  right: ${({ anchor, size }) =>
-    anchor === "left"
-      ? "auto"
-      : `calc(${size === "lg" ? "60%" : size === "md" ? "40%" : "30%"} + ${
-          sharedTheme.spacing.md
-        })`};
-  left: ${({ anchor }) =>
-    anchor === "left" ? `calc(100% + ${sharedTheme.spacing.md})` : "auto"};
+  top: ${sharedTheme.spacing.xs};
+  ${({ anchor }) => (anchor === "left" ? "right: -5px;" : "left: -5px;")}
+  transform: ${({ anchor }) =>
+    anchor === "left" ? "translateX(100%)" : "translateX(-100%)"};
   background: white;
   border: none;
   border-radius: 10%;
@@ -74,6 +69,7 @@ const CloseButton = styled.button<{
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: ${sharedTheme.shadows.sm};
 `;
 
 const Drawer: React.FC<SideDrawerProps> = ({

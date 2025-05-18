@@ -1,7 +1,15 @@
 import { useState } from "react";
 import styled from "styled-components";
 import { sharedTheme } from "../../styles/theme/theme";
-import { MailIcon, LockIcon, FacebookIcon, InstagramIcon } from "lucide-react";
+import {
+  MailIcon,
+  LockIcon,
+  //   FacebookIcon,
+  //   InstagramIcon,
+  UserIcon,
+  AtSignIcon,
+  Link2Icon,
+} from "lucide-react";
 import ButtonLoader from "../Loader/ButtonLoader";
 import { useNavigate } from "react-router-dom";
 
@@ -22,7 +30,7 @@ const Background = styled.div`
     left: 0;
     height: 100%;
     width: 100%;
-    background: url("https://ik.imagekit.io/i3divn77k/MVP/authBG.png?updatedAt=1746276592750")
+    background: url("https://ik.imagekit.io/i3divn77k/MVP/akjdna.png?updatedAt=1746312870577")
       center/cover no-repeat;
     opacity: 0.4;
     z-index: 0;
@@ -47,17 +55,16 @@ const AuthCard = styled.div`
   backdrop-filter: blur(10px);
 `;
 
-const LoginInfluencer = () => {
+const SignupInfluencer = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   return (
     <Background>
       <AuthCard>
-        <Title>
-          Hey Champ ! <br />
-          Sign in with email
-        </Title>
-        <Subtitle>Manage your campaigns and insights with ease.</Subtitle>
+        <Title>Sign up to get started</Title>
+        <Subtitle>
+          Create your account and unlock exclusive opportunities.
+        </Subtitle>
         <div
           style={{
             display: "flex",
@@ -67,11 +74,18 @@ const LoginInfluencer = () => {
           }}
         >
           <InputGroup>
+            <UserIcon
+              size={18}
+              color={sharedTheme.colorVariants.secondary.dark}
+            />
+            <StyledInput type="text" placeholder="Full Name" />
+          </InputGroup>
+          <InputGroup>
             <MailIcon
               size={18}
               color={sharedTheme.colorVariants.secondary.dark}
             />
-            <StyledInput type="text" placeholder="Email" />
+            <StyledInput type="email" placeholder="Email Address" />
           </InputGroup>
           <InputGroup>
             <LockIcon
@@ -80,31 +94,40 @@ const LoginInfluencer = () => {
             />
             <StyledInput type="password" placeholder="Password" />
           </InputGroup>
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <ForgotPassword>
-              Brand ?
-              <span
-                onClick={() => {
-                  navigate("/loginbrand");
-                }}
-                style={{
-                  cursor: "pointer",
-                  color: sharedTheme.colorVariants.primary.light,
-                }}
-              >
-                {" "}
-                Login here
-              </span>
-            </ForgotPassword>
-            <ForgotPassword style={{ textAlign: "right" }}>
-              Forgot password?
-            </ForgotPassword>
-          </div>
+          <InputGroup>
+            <AtSignIcon
+              size={18}
+              color={sharedTheme.colorVariants.secondary.dark}
+            />
+            <StyledInput type="text" placeholder="Username (optional)" />
+          </InputGroup>
+          <InputGroup>
+            <Link2Icon
+              size={18}
+              color={sharedTheme.colorVariants.secondary.dark}
+            />
+            <select style={{ border: "none", background: "transparent" }}>
+              <option>Instagram</option>
+              <option>Facebook</option>
+              <option>YouTube</option>
+              <option>X</option>
+            </select>
+            <StyledInput type="text" placeholder=" @handle (Optional)" />
+          </InputGroup>
+          <CheckboxRow>
+            <input type="checkbox" id="terms" required />
+            <label
+              htmlFor="terms"
+              style={{ fontSize: sharedTheme.typography.fontSizes.xs }}
+            >
+              I accept the Terms & Conditions
+            </label>
+          </CheckboxRow>
           <ForgotPassword>
-            Don't have an account ?
+            Already have an account ?
             <span
               onClick={() => {
-                navigate("/signup");
+                navigate("/login");
               }}
               style={{
                 cursor: "pointer",
@@ -112,7 +135,7 @@ const LoginInfluencer = () => {
               }}
             >
               {" "}
-              Signup here
+              Login here
             </span>
           </ForgotPassword>
         </div>
@@ -120,11 +143,11 @@ const LoginInfluencer = () => {
           {isLoading ? (
             <ButtonLoader color="white" size={"md"} />
           ) : (
-            "Get Started"
+            "Create Account"
           )}
         </SubmitButton>
-        <DividerText>
-          <span>Or Sign in with</span>
+        {/* <DividerText>
+          <span>Or Sign up with</span>
         </DividerText>
         <IconRow>
           <InteractiveIcon variant="facebook">
@@ -136,13 +159,13 @@ const LoginInfluencer = () => {
           <InteractiveIcon variant="gmail">
             <MailIcon size={20} />
           </InteractiveIcon>
-        </IconRow>
+        </IconRow> */}
       </AuthCard>
     </Background>
   );
 };
 
-export default LoginInfluencer;
+export default SignupInfluencer;
 
 const Title = styled.div`
   font-size: ${sharedTheme.typography.fontSizes.xxl};
@@ -166,6 +189,14 @@ const InputGroup = styled.div`
   align-items: center;
   padding: ${sharedTheme.spacing.xs};
   gap: ${sharedTheme.spacing.xs};
+  select {
+    text-decoration: none;
+
+    &:focus {
+      outline: none;
+      box-shadow: none;
+    }
+  }
 `;
 
 const StyledInput = styled.input`
@@ -175,13 +206,16 @@ const StyledInput = styled.input`
   border: none;
   outline: none;
   background-color: transparent;
+  &::placeholder {
+    color: ${sharedTheme.colorVariants.secondary.dark};
+  }
 `;
 
-const ForgotPassword = styled.div`
-  width: 100%;
-  text-align: left;
-  font-size: ${sharedTheme.typography.fontSizes.xs};
-`;
+// const ForgotPassword = styled.div`
+//   width: 100%;
+//   text-align: right;
+//   font-size: ${sharedTheme.typography.fontSizes.xs};
+// `;
 
 const SubmitButton = styled.div`
   width: 91%;
@@ -203,58 +237,71 @@ const SubmitButton = styled.div`
   }
 `;
 
-const IconRow = styled.div`
-  display: flex;
+// const IconRow = styled.div`
+//   display: flex;
+//   width: 100%;
+//   gap: ${sharedTheme.spacing.xl};
+//   justify-content: center;
+//   align-items: center;
+// `;
+
+// const InteractiveIcon = styled.div<{
+//   variant: "facebook" | "instagram" | "gmail";
+// }>`
+//   padding: 8px;
+//   border-radius: 50%;
+//   transition: all 0.2s ease-in-out;
+//   border: 2px solid transparent;
+//   display: flex;
+//   align-items: center;
+//   justify-content: center;
+//   cursor: pointer;
+//   border-color: ${({ variant }) =>
+//     variant === "facebook"
+//       ? sharedTheme.colorVariants.primary.dark
+//       : variant === "instagram"
+//       ? "#C13584"
+//       : "#D93025"};
+//   background-color: ${({ variant }) =>
+//     variant === "facebook"
+//       ? "rgba(59, 130, 246, 0.1)"
+//       : variant === "instagram"
+//       ? "rgba(225, 48, 108, 0.1)"
+//       : "rgba(234, 67, 53, 0.1)"};
+// `;
+
+const ForgotPassword = styled.div`
   width: 100%;
-  gap: ${sharedTheme.spacing.xl};
-  justify-content: center;
-  align-items: center;
+  text-align: left;
+  font-size: ${sharedTheme.typography.fontSizes.xs};
 `;
+// const DividerText = styled.div`
+//   display: flex;
+//   align-items: center;
+//   width: 90%;
+//   color: ${sharedTheme.colorVariants.secondary.dark};
+//   font-size: ${sharedTheme.typography.fontSizes.sm};
+//   gap: ${sharedTheme.spacing.sm};
+//   margin: ${sharedTheme.spacing.sm} 0;
 
-const InteractiveIcon = styled.div<{
-  variant: "facebook" | "instagram" | "gmail";
-}>`
-  padding: 8px;
-  border-radius: 50%;
-  transition: all 0.2s ease-in-out;
-  border: 2px solid transparent;
+//   &::before,
+//   &::after {
+//     content: "";
+//     flex: 1;
+//     height: 1px;
+//     background-color: ${sharedTheme.colorVariants.secondary.light};
+//   }
+
+//   span {
+//     padding: 0 ${sharedTheme.spacing.sm};
+//     white-space: nowrap;
+//   }
+// `;
+
+const CheckboxRow = styled.div`
   display: flex;
   align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  border-color: ${({ variant }) =>
-    variant === "facebook"
-      ? sharedTheme.colorVariants.primary.dark
-      : variant === "instagram"
-      ? "#C13584"
-      : "#D93025"};
-  background-color: ${({ variant }) =>
-    variant === "facebook"
-      ? "rgba(59, 130, 246, 0.1)"
-      : variant === "instagram"
-      ? "rgba(225, 48, 108, 0.1)"
-      : "rgba(234, 67, 53, 0.1)"};
-`;
-
-const DividerText = styled.div`
-  display: flex;
-  align-items: center;
-  width: 90%;
-  color: ${sharedTheme.colorVariants.secondary.dark};
-  font-size: ${sharedTheme.typography.fontSizes.sm};
-  gap: ${sharedTheme.spacing.sm};
-  margin: ${sharedTheme.spacing.sm} 0;
-
-  &::before,
-  &::after {
-    content: "";
-    flex: 1;
-    height: 1px;
-    background-color: ${sharedTheme.colorVariants.secondary.light};
-  }
-
-  span {
-    padding: 0 ${sharedTheme.spacing.sm};
-    white-space: nowrap;
-  }
+  gap: ${sharedTheme.spacing.xs};
+  font-size: ${sharedTheme.typography.fontSizes.xs};
+  width: 100%;
 `;

@@ -7,8 +7,11 @@ const sharedTheme = {
       lg: "18px",
       xl: "20px",
       xxl: "24px",
-      display: "32px",
       xxxl: "36px",
+      xxxxl: "48px",
+      xxxxxl: "64px",
+      xxxxxxl: "72px",
+      display: "32px",
     },
     fontWeights: {
       thin: 100,
@@ -115,6 +118,11 @@ const sharedTheme = {
     error: {
       light: "#F87171",
       dark: "#991B1B",
+    },
+    link: {
+      default: "#2563EB",
+      hover: "#1D4ED8",
+      visited: "#1E3A8A",
     },
   },
 
@@ -268,6 +276,8 @@ const sharedTheme = {
       primary: "linear-gradient(90deg, #2563EB 0%, #3B82F6 100%)",
       accent: "linear-gradient(90deg, #D97706 0%, #F59E0B 100%)",
       auth: "linear-gradient(180deg, #7BA9F5 0%, white 100%)",
+
+      lightBlue: "linear-gradient(180deg, #D3E6FF 0%, #FFFFFF 100%)",
       blue: "linear-gradient(180deg, #2563EB 0%, #7BA9F5 100%)",
       purple: "linear-gradient(180deg, #9333EA 0%, #C084FC 100%)",
       pink: "linear-gradient(180deg, #DB2777 0%, #FBCFE8 100%)",
@@ -449,6 +459,9 @@ export const lightTheme = {
     info: "#3B82F6",
     sidebarBackground: "#09162c",
     sidebarText: "#b3b7bd",
+    link: "#2563EB",
+    linkHover: "#1D4ED8",
+    linkVisited: "#1E3A8A",
   },
 };
 
@@ -469,6 +482,9 @@ export const darkTheme = {
     info: "#60A5FA",
     sidebarBackground: "#ffffff",
     sidebarText: "#000000",
+    link: "#60A5FA",
+    linkHover: "#3B82F6",
+    linkVisited: "#1E40AF",
   },
 };
 

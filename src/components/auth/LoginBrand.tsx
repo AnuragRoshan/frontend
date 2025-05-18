@@ -144,7 +144,7 @@ const StyledInput = styled.input`
 
 const ForgotPassword = styled.div`
   width: 100%;
-  text-align: right;
+  text-align: left;
   font-size: ${sharedTheme.typography.fontSizes.xs};
 `;
 

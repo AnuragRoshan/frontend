@@ -2,29 +2,17 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import LoginBrand from "./components/auth/LoginBrand";
 import LoginInfluencer from "./components/auth/LoginInfluencer";
 import DashboardLayout from "./components/layout/DashBoardLayout";
-import { useState } from "react";
-import Drawer from "./components/layout/Drawer";
+import SignUpInfluencer from "./components/auth/SignUpInfluencer";
+import Home from "./pages/influencer/Home/Home";
+import Campaigns from "./pages/influencer/Campaigns/Campaigns";
+import SubmitContent from "./pages/influencer/Campaigns/CampaignDetail";
+import Profile from "./pages/influencer/Profile/Profile";
+import CreatorPortfolio from "./pages/influencer/Portfolio/Portfolio";
 
-const Home = () => {
-  const [isDrawerOpen, setDrawerOpen] = useState(false);
-
-  return (
-    <div>
-      <button onClick={() => setDrawerOpen(true)}>Open Drawer</button>
-      <Drawer
-        isOpen={isDrawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        size="sm"
-        anchor="left"
-      >
-        <h2>Welcome to the Home Drawer</h2>
-        <p>This is reusable content for the drawer.</p>
-      </Drawer>
-    </div>
-  );
-};
 const Dashboard = () => <div>Analytics Page</div>;
 const Settings = () => <div>Settings Page</div>;
+// const Profile = () => <div>Profile Page</div>;
+const Notifications = () => <div>Notification Page</div>;
 
 const App = () => {
   return (
@@ -33,6 +21,7 @@ const App = () => {
         {/* Auth routes */}
         <Route path="/login" element={<LoginInfluencer />} />
         <Route path="/loginbrand" element={<LoginBrand />} />
+        <Route path="/signup" element={<SignUpInfluencer />} />
 
         {/* Dashboard layout routes */}
         <Route
@@ -56,6 +45,47 @@ const App = () => {
           element={
             <DashboardLayout>
               <Settings />
+            </DashboardLayout>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <DashboardLayout>
+              <Profile />
+            </DashboardLayout>
+          }
+        />
+
+        <Route
+          path="/notifications"
+          element={
+            <DashboardLayout>
+              <Notifications />
+            </DashboardLayout>
+          }
+        />
+        <Route
+          path="/portfolio"
+          element={
+            <DashboardLayout>
+              <CreatorPortfolio />
+            </DashboardLayout>
+          }
+        />
+        <Route
+          path="/campaigns"
+          element={
+            <DashboardLayout>
+              <Campaigns />
+            </DashboardLayout>
+          }
+        />
+        <Route
+          path="/SubmitContent/:campaignId"
+          element={
+            <DashboardLayout>
+              <SubmitContent />
             </DashboardLayout>
           }
         />
