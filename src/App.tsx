@@ -33,6 +33,14 @@ const App = () => {
           }
         />
         <Route
+          path="/"
+          element={
+            <DashboardLayout>
+              <Home />
+            </DashboardLayout>
+          }
+        />
+        <Route
           path="/dashboard"
           element={
             <DashboardLayout>
