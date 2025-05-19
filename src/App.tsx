@@ -8,8 +8,9 @@ import Campaigns from "./pages/influencer/Campaigns/Campaigns";
 import SubmitContent from "./pages/influencer/Campaigns/CampaignDetail";
 import Profile from "./pages/influencer/Profile/Profile";
 import CreatorPortfolio from "./pages/influencer/Portfolio/Portfolio";
+import Dashboard from "./pages/influencer/Dashboard";
 
-const Dashboard = () => <div>Analytics Page</div>;
+// const Dashboard = () => <div>Analytics Page</div>;
 const Settings = () => <div>Settings Page</div>;
 // const Profile = () => <div>Profile Page</div>;
 const Notifications = () => <div>Notification Page</div>;

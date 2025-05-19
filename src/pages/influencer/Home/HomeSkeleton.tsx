@@ -1,4 +1,3 @@
-import React from "react";
 import SkeletonTop from "../../../components/layout/SkeletonTop";
 import SkeletonInner from "../../../components/layout/SkeletonInner";
 import styled from "styled-components";
