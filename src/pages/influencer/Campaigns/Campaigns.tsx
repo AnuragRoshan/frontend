@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import CampaignsSkeleton from "./CampaginSkeleton";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { sharedTheme } from "../../../styles/theme/theme";
@@ -344,6 +345,18 @@ const Campaigns = () => {
   const [sortBy, setSortBy] = useState("date");
   const [sortOrder, setSortOrder] = useState("desc");
 
+  const [loading, setLoading] = useState(true);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    timeoutRef.current = setTimeout(() => {
+      setLoading(false);
+    }, 800);
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
+
   const parsePayout = (payout: string) =>
     parseInt(payout.replace(/[^\d]/g, ""), 10);
 
@@ -455,6 +468,10 @@ const Campaigns = () => {
   const toggleSortOrder = () => {
     setSortOrder(sortOrder === "desc" ? "asc" : "desc");
   };
+
+  if (loading) {
+    return <CampaignsSkeleton />;
+  }
 
   return (
     <PageContainer>

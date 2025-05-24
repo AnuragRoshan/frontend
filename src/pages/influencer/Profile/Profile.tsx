@@ -427,6 +427,7 @@ const Profile = () => {
   const [expandedCollaboration, setExpandedCollaboration] = useState<
     number | null
   >(null);
+  const isCreator = true;
 
   const handleBack = () => {
     navigate(-1);
@@ -571,27 +572,32 @@ const Profile = () => {
           <ImageIcon size={16} />
           Content Showcase
         </TabButton>
-        <TabButton
-          active={activeTab === "reviews"}
-          onClick={() => setActiveTab("reviews")}
-        >
-          <Star size={16} />
-          Reviews & Ratings
-        </TabButton>
-        <TabButton
-          active={activeTab === "collaborations"}
-          onClick={() => setActiveTab("collaborations")}
-        >
-          <Users size={16} />
-          Collaborations
-        </TabButton>
-        <TabButton
-          active={activeTab === "analytics"}
-          onClick={() => setActiveTab("analytics")}
-        >
-          <BarChart2 size={16} />
-          Analytics
-        </TabButton>
+        {/* Conditionally render tabs for creators only */}
+        {isCreator && (
+          <>
+            <TabButton
+              active={activeTab === "reviews"}
+              onClick={() => setActiveTab("reviews")}
+            >
+              <Star size={16} />
+              Reviews & Ratings
+            </TabButton>
+            <TabButton
+              active={activeTab === "collaborations"}
+              onClick={() => setActiveTab("collaborations")}
+            >
+              <Users size={16} />
+              Collaborations
+            </TabButton>
+            <TabButton
+              active={activeTab === "analytics"}
+              onClick={() => setActiveTab("analytics")}
+            >
+              <BarChart2 size={16} />
+              Analytics
+            </TabButton>
+          </>
+        )}
       </TabsContainer>
 
       <MainContent>
@@ -659,6 +665,75 @@ const Profile = () => {
                   </ProfileDetailItem>
                 </ProfileDetailsGrid>
               </OverviewCard>
+
+              {/* Only show social accounts connect card for creators */}
+              {isCreator && (
+                <OverviewCard>
+                  <CardTitle>
+                    <Globe size={20} />
+                    Connect Your Social Accounts
+                  </CardTitle>
+                  <DetailTags>
+                    <DetailTag>
+                      <span
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "0.5rem",
+                        }}
+                      >
+                        <Instagram size={16} />
+                        {userData.socialMedia.instagram
+                          ? "Instagram: Connected"
+                          : "Instagram: Connect"}
+                      </span>
+                    </DetailTag>
+                    <DetailTag>
+                      <span
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "0.5rem",
+                        }}
+                      >
+                        <Youtube size={16} />
+                        {userData.socialMedia.youtube
+                          ? "YouTube: Connected"
+                          : "YouTube: Connect"}
+                      </span>
+                    </DetailTag>
+                    <DetailTag>
+                      <span
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "0.5rem",
+                        }}
+                      >
+                        <Twitter size={16} />
+                        {userData.socialMedia.twitter
+                          ? "Twitter: Connected"
+                          : "Twitter: Connect"}
+                      </span>
+                    </DetailTag>
+                    <DetailTag>
+                      <span
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "0.5rem",
+                        }}
+                      >
+                        {/* LinkedIn icon is not imported, use Globe as placeholder */}
+                        <Globe size={16} />
+                        {userData.socialMedia.website
+                          ? "LinkedIn: Connected"
+                          : "LinkedIn: Connect"}
+                      </span>
+                    </DetailTag>
+                  </DetailTags>
+                </OverviewCard>
+              )}
 
               <OverviewCard>
                 <CardTitle>
@@ -1771,6 +1846,7 @@ const OverviewCard = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  height: max-content;
   padding: 1.5rem;
   background-color: #f9fafb;
   border-radius: 8px;

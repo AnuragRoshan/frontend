@@ -9,11 +9,13 @@ import SubmitContent from "./pages/influencer/Campaigns/CampaignDetail";
 import Profile from "./pages/influencer/Profile/Profile";
 import CreatorPortfolio from "./pages/influencer/Portfolio/Portfolio";
 import Dashboard from "./pages/influencer/Dashboard";
+import NotificationsPage from "./pages/influencer/Notifications/Notifications";
+import SettingsPage from "./pages/Settings/Settings";
 
 // const Dashboard = () => <div>Analytics Page</div>;
-const Settings = () => <div>Settings Page</div>;
+// const Settings = () => <div>Settings Page</div>;
 // const Profile = () => <div>Profile Page</div>;
-const Notifications = () => <div>Notification Page</div>;
+// const Notifications = () => <div>Notification Page</div>;
 
 const App = () => {
   return (
@@ -53,7 +55,7 @@ const App = () => {
           path="/settings"
           element={
             <DashboardLayout>
-              <Settings />
+              <SettingsPage />
             </DashboardLayout>
           }
         />
@@ -70,7 +72,7 @@ const App = () => {
           path="/notifications"
           element={
             <DashboardLayout>
-              <Notifications />
+              <NotificationsPage />
             </DashboardLayout>
           }
         />

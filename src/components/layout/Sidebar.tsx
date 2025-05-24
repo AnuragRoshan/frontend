@@ -14,6 +14,7 @@ import {
   LogOutIcon,
   BrainCircuit,
   FolderKanban,
+  Network,
 } from "lucide-react";
 import { Tooltip } from "antd";
 
@@ -91,6 +92,12 @@ const Sidebar = () => {
       to: "/ai-analytics",
       label: "AI Analytics",
       icon: BrainCircuit,
+      highlight: true,
+    },
+    {
+      to: "/ai-automations",
+      label: "AI Automations",
+      icon: Network,
       highlight: true,
     },
     { divider: true },

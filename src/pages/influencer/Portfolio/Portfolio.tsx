@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import CreatorPortfolioSkeleton from "./PortfolioSkeleton";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { sharedTheme } from "../../../styles/theme/theme";
@@ -370,6 +371,14 @@ const CreatorPortfolio = () => {
   const [featuredContent, setFeaturedContent] = useState<number[]>(
     contentPortfolio.filter((item) => item.featured).map((item) => item.id)
   );
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setLoading(false);
+    }, 800);
+    return () => clearTimeout(timeout);
+  }, []);
 
   const handleBack = () => {
     navigate(-1);
@@ -448,6 +457,9 @@ const CreatorPortfolio = () => {
   const featuredItems = contentPortfolio
     .filter((item) => featuredContent.includes(item.id))
     .slice(0, 3);
+  if (loading) {
+    return <CreatorPortfolioSkeleton />;
+  }
 
   return (
     <PageContainer>
@@ -1373,264 +1385,6 @@ const ActionButton = styled.button<ActionButtonProps>`
         : "#f3f4f6"};
   }
 `;
-
-// const ProfileHeader = styled.div`
-//   display: flex;
-//   flex-direction: column;
-//   gap: 1.5rem;
-//   background-color: white;
-//   border-radius: 12px;
-//   padding: 1.5rem;
-//   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-//   border: 1px solid #e5e7eb;
-//   margin-bottom: 1.5rem;
-// `;
-
-// const ProfileSection = styled.div`
-//   display: flex;
-//   gap: 1.5rem;
-//   flex-wrap: wrap;
-
-//   @media (max-width: 768px) {
-//     flex-direction: column;
-//     align-items: center;
-//   }
-// `;
-
-// const ProfileImageContainer = styled.div`
-//   position: relative;
-//   width: 160px;
-//   height: 160px;
-//   border-radius: 50%;
-//   overflow: hidden;
-//   border: 4px solid ${sharedTheme.colorVariants.primary.lighter};
-//   flex-shrink: 0;
-// `;
-
-// const ProfileImage = styled.img`
-//   width: 100%;
-//   height: 100%;
-//   object-fit: cover;
-// `;
-
-// const EditProfileImageButton = styled.button`
-//   position: absolute;
-//   bottom: 0;
-//   right: 0;
-//   width: 36px;
-//   height: 36px;
-//   border-radius: 50%;
-//   background-color: ${sharedTheme.colorVariants.primary.dark};
-//   color: white;
-//   display: flex;
-//   align-items: center;
-//   justify-content: center;
-//   border: 2px solid white;
-//   cursor: pointer;
-//   transition: background-color 0.2s;
-
-//   &:hover {
-//     background-color: ${sharedTheme.colorVariants.primary.darker};
-//   }
-// `;
-
-// const ProfileInfo = styled.div`
-//   display: flex;
-//   flex-direction: column;
-//   gap: 0.75rem;
-//   flex: 1;
-// `;
-
-// const ProfileNameSection = styled.div`
-//   display: flex;
-//   flex-direction: column;
-// `;
-
-// const ProfileName = styled.h1`
-//   font-size: ${sharedTheme.typography.fontSizes.xxl};
-//   font-weight: ${sharedTheme.typography.fontWeights.bold};
-//   color: ${sharedTheme.colorVariants.secondary.dark};
-//   margin: 0;
-// `;
-
-// const EditableProfileName = styled.input`
-//   font-size: ${sharedTheme.typography.fontSizes.xxl};
-//   font-weight: ${sharedTheme.typography.fontWeights.bold};
-//   color: ${sharedTheme.colorVariants.secondary.dark};
-//   margin: 0;
-//   padding: 0.25rem 0.5rem;
-//   border: 1px solid #e5e7eb;
-//   border-radius: 6px;
-//   background-color: #f9fafb;
-//   width: 100%;
-
-//   &:focus {
-//     outline: none;
-//     border-color: ${sharedTheme.colorVariants.primary.light};
-//     background-color: white;
-//   }
-// `;
-
-// const ProfileUsername = styled.div`
-//   font-size: ${sharedTheme.typography.fontSizes.lg};
-//   color: ${sharedTheme.colorVariants.secondary.light};
-// `;
-
-// const ProfileBio = styled.p`
-//   font-size: ${sharedTheme.typography.fontSizes.md};
-//   line-height: 1.6;
-//   color: ${sharedTheme.colorVariants.secondary.dark};
-//   margin: 0;
-// `;
-
-// const EditableBio = styled.textarea`
-//   font-size: ${sharedTheme.typography.fontSizes.md};
-//   line-height: 1.6;
-//   color: ${sharedTheme.colorVariants.secondary.dark};
-//   margin: 0;
-//   padding: 0.5rem;
-//   border: 1px solid #e5e7eb;
-//   border-radius: 6px;
-//   background-color: #f9fafb;
-//   width: 100%;
-//   min-height: 80px;
-//   resize: vertical;
-//   font-family: inherit;
-
-//   &:focus {
-//     outline: none;
-//     border-color: ${sharedTheme.colorVariants.primary.light};
-//     background-color: white;
-//   }
-// `;
-
-// const ProfileLocation = styled.div`
-//   display: flex;
-//   align-items: center;
-//   gap: 0.5rem;
-//   font-size: ${sharedTheme.typography.fontSizes.sm};
-//   color: ${sharedTheme.colorVariants.secondary.light};
-// `;
-
-// const ProfileTags = styled.div`
-//   display: flex;
-//   flex-wrap: wrap;
-//   gap: 0.5rem;
-//   margin-top: 0.5rem;
-// `;
-
-// const ProfileTag = styled.div`
-//   font-size: ${sharedTheme.typography.fontSizes.sm};
-//   color: ${sharedTheme.colorVariants.primary.dark};
-//   background-color: #eff6ff;
-//   padding: 0.25rem 0.75rem;
-//   border-radius: 16px;
-// `;
-
-// const AddTagButton = styled.button`
-//   display: flex;
-//   align-items: center;
-//   gap: 0.25rem;
-//   font-size: ${sharedTheme.typography.fontSizes.sm};
-//   color: ${sharedTheme.colorVariants.secondary.light};
-//   background-color: #f3f4f6;
-//   padding: 0.25rem 0.75rem;
-//   border-radius: 16px;
-//   border: 1px dashed #d1d5db;
-//   cursor: pointer;
-//   transition: all 0.2s;
-
-//   &:hover {
-//     background-color: #e5e7eb;
-//     color: ${sharedTheme.colorVariants.secondary.dark};
-//   }
-// `;
-
-// const ProfileContact = styled.div`
-//   display: flex;
-//   gap: 0.75rem;
-// `;
-
-// const ContactItem = styled.div`
-//   display: flex;
-//   align-items: center;
-//   gap: 0.5rem;
-//   font-size: ${sharedTheme.typography.fontSizes.sm};
-//   color: ${sharedTheme.colorVariants.secondary.light};
-// `;
-
-// const SocialLinks = styled.div`
-//   display: flex;
-//   flex-wrap: wrap;
-//   gap: 1rem;
-//   margin-top: 0.5rem;
-// `;
-
-// const SocialLink = styled.a`
-//   display: flex;
-//   align-items: center;
-//   gap: 0.5rem;
-//   font-size: ${sharedTheme.typography.fontSizes.sm};
-//   color: ${sharedTheme.colorVariants.secondary.dark};
-//   text-decoration: none;
-//   cursor: pointer;
-
-//   &:hover {
-//     color: ${sharedTheme.colorVariants.primary.dark};
-//   }
-// `;
-
-// const AddSocialButton = styled.button`
-//   display: flex;
-//   align-items: center;
-//   gap: 0.25rem;
-//   font-size: ${sharedTheme.typography.fontSizes.sm};
-//   color: ${sharedTheme.colorVariants.secondary.light};
-//   background: none;
-//   border: none;
-//   cursor: pointer;
-//   padding: 0;
-
-//   &:hover {
-//     color: ${sharedTheme.colorVariants.primary.dark};
-//   }
-// `;
-
-// const StatsSection = styled.div`
-//   display: grid;
-//   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-//   gap: 1rem;
-//   padding-top: 1.5rem;
-//   border-top: 1px solid #e5e7eb;
-// `;
-
-// const StatCard = styled.div`
-//   display: flex;
-//   flex-direction: column;
-//   align-items: center;
-//   justify-content: center;
-//   padding: 1rem;
-//   background-color: #f9fafb;
-//   border-radius: 8px;
-//   border: 1px solid #e5e7eb;
-// `;
-
-// const StatValue = styled.div`
-//   font-size: ${sharedTheme.typography.fontSizes.xl};
-//   font-weight: ${sharedTheme.typography.fontWeights.bold};
-//   color: ${sharedTheme.colorVariants.primary.dark};
-// `;
-
-// const StatLabel = styled.div`
-//   display: flex;
-//   flex-direction: column;
-//   align-items: center;
-//   gap: 0.25rem;
-//   font-size: ${sharedTheme.typography.fontSizes.sm};
-//   color: ${sharedTheme.colorVariants.secondary.light};
-//   text-align: center;
-//   margin-top: 0.5rem;
-// `;
 
 const RatingStars = styled.div`
   display: flex;
@@ -2668,11 +2422,12 @@ const ModalOverlay = styled.div`
 `;
 
 const ShareModal = styled.div`
-  width: 500px;
+  width: 50%;
   max-width: 90%;
   background-color: white;
   border-radius: 12px;
-  overflow: hidden;
+  overflow-y: scroll;
+  height: 95%;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 `;
 
