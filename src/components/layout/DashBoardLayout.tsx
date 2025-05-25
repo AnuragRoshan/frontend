@@ -75,35 +75,37 @@ const FooterLink = styled.a`
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <Layout>
-      <Sidebar />
+      {location.pathname !== "/" && <Sidebar />}
       <MainContent>
         {children}
 
-        <DashboardFooter>
-          <FooterLeft>
-            <FooterLogo>
-              <Globe size={20} />
-              <span>CreatorAnalytics</span>
-            </FooterLogo>
-            <FooterCopyright>
-              © 2024 CreatorAnalytics. All rights reserved.
-            </FooterCopyright>
-          </FooterLeft>
-          <FooterLinks>
-            <FooterLink>
-              <HelpCircle size={16} />
-              Help Center
-            </FooterLink>
-            <FooterLink>
-              <Settings2 size={16} />
-              Settings
-            </FooterLink>
-            <FooterLink>
-              <FileText size={16} />
-              Documentation
-            </FooterLink>
-          </FooterLinks>
-        </DashboardFooter>
+        {location.pathname !== "/" && (
+          <DashboardFooter>
+            <FooterLeft>
+              <FooterLogo>
+                <Globe size={20} />
+                <span>CreatorAnalytics</span>
+              </FooterLogo>
+              <FooterCopyright>
+                © 2024 CreatorAnalytics. All rights reserved.
+              </FooterCopyright>
+            </FooterLeft>
+            <FooterLinks>
+              <FooterLink>
+                <HelpCircle size={16} />
+                Help Center
+              </FooterLink>
+              <FooterLink>
+                <Settings2 size={16} />
+                Settings
+              </FooterLink>
+              <FooterLink>
+                <FileText size={16} />
+                Documentation
+              </FooterLink>
+            </FooterLinks>
+          </DashboardFooter>
+        )}
       </MainContent>
     </Layout>
   );

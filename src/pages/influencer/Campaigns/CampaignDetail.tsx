@@ -312,7 +312,7 @@ const campaignData = {
 
 const CampaignDetail = () => {
   const { id } = useParams();
-  const isCreator = true; // Change this based on actual logic
+  const isCreator = false; // Change this based on actual logic
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
   const [campaign, setCampaign] = useState(campaignData);
@@ -2907,7 +2907,8 @@ const MessageContent = styled.div<MessageContentProps>`
   background-color: ${(props) => (props.isUser ? "#eff6ff" : "white")};
   border: 1px solid ${(props) => (props.isUser ? "#bfdbfe" : "#e5e7eb")};
   border-radius: 8px;
-  border-top-${(props) => (props.isUser ? "right" : "left")}-radius: 0;
+  border-top-right-radius: ${(props) => (props.isUser ? "0" : "inherit")};
+  border-top-left-radius: ${(props) => (props.isUser ? "inherit" : "0")};
 `;
 
 const MessageSender = styled.div`

@@ -11,6 +11,7 @@ import CreatorPortfolio from "./pages/influencer/Portfolio/Portfolio";
 import Dashboard from "./pages/influencer/Dashboard";
 import NotificationsPage from "./pages/influencer/Notifications/Notifications";
 import SettingsPage from "./pages/Settings/Settings";
+import LandingPage from "./pages/landing/Landing";
 
 // const Dashboard = () => <div>Analytics Page</div>;
 // const Settings = () => <div>Settings Page</div>;
@@ -39,7 +40,7 @@ const App = () => {
           path="/"
           element={
             <DashboardLayout>
-              <Home />
+              <LandingPage />
             </DashboardLayout>
           }
         />

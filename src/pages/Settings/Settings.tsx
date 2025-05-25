@@ -2703,11 +2703,11 @@ const LoadingSkeleton = styled.div`
   }
 `;
 
-const HeaderSection = styled.div`
+export const HeaderSection = styled.div`
   width: 100%;
 `;
 
-const HeaderContent = styled.div`
+export const HeaderContent = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -2725,7 +2725,7 @@ const HeaderLeft = styled.div`
   gap: 0.5rem;
 `;
 
-const HeaderTitle = styled.h1`
+export const HeaderTitle = styled.h1`
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -2735,13 +2735,13 @@ const HeaderTitle = styled.h1`
   margin: 0;
 `;
 
-const HeaderSubtitle = styled.p`
+export const HeaderSubtitle = styled.p`
   font-size: ${sharedTheme.typography.fontSizes.lg};
   color: #6b7280;
   margin: 0;
 `;
 
-const HeaderActions = styled.div`
+export const HeaderActions = styled.div`
   display: flex;
   gap: 0.75rem;
   align-items: center;

@@ -8,15 +8,12 @@ import {
   AlertCircle,
   MessageSquare,
   DollarSign,
-  Star,
-  TrendingUp,
   Users,
   Heart,
   Award,
   Clock,
   Target,
   Briefcase,
-  Camera,
   MoreHorizontal,
 } from "lucide-react";
 
@@ -450,71 +447,6 @@ const NotificationsPage = () => {
           </StatsGrid>
         </WrapperBox>
       </StatsSection>
-
-      {/* Portfolio Showcase */}
-      <PortfolioSection>
-        <WrapperBox themeVariant="grey">
-          <PortfolioHeader>
-            <PortfolioTitle>Creator Portfolio Highlights</PortfolioTitle>
-            <PortfolioSubtitle>
-              Showcasing your recent achievements and campaign successes
-            </PortfolioSubtitle>
-          </PortfolioHeader>
-
-          <PortfolioGrid>
-            <PortfolioCard>
-              <PortfolioCardHeader>
-                <Camera size={24} />
-                <PortfolioCardTitle>Content Creation</PortfolioCardTitle>
-              </PortfolioCardHeader>
-              <PortfolioStats>
-                <PortfolioStat>
-                  <PortfolioStatValue>47</PortfolioStatValue>
-                  <PortfolioStatLabel>Posts Created</PortfolioStatLabel>
-                </PortfolioStat>
-                <PortfolioStat>
-                  <PortfolioStatValue>2.8M</PortfolioStatValue>
-                  <PortfolioStatLabel>Total Reach</PortfolioStatLabel>
-                </PortfolioStat>
-              </PortfolioStats>
-            </PortfolioCard>
-
-            <PortfolioCard>
-              <PortfolioCardHeader>
-                <TrendingUp size={24} />
-                <PortfolioCardTitle>Performance</PortfolioCardTitle>
-              </PortfolioCardHeader>
-              <PortfolioStats>
-                <PortfolioStat>
-                  <PortfolioStatValue>4.8%</PortfolioStatValue>
-                  <PortfolioStatLabel>Avg. Engagement</PortfolioStatLabel>
-                </PortfolioStat>
-                <PortfolioStat>
-                  <PortfolioStatValue>95%</PortfolioStatValue>
-                  <PortfolioStatLabel>Client Satisfaction</PortfolioStatLabel>
-                </PortfolioStat>
-              </PortfolioStats>
-            </PortfolioCard>
-
-            <PortfolioCard>
-              <PortfolioCardHeader>
-                <Star size={24} />
-                <PortfolioCardTitle>Achievements</PortfolioCardTitle>
-              </PortfolioCardHeader>
-              <PortfolioStats>
-                <PortfolioStat>
-                  <PortfolioStatValue>12</PortfolioStatValue>
-                  <PortfolioStatLabel>Campaigns Completed</PortfolioStatLabel>
-                </PortfolioStat>
-                <PortfolioStat>
-                  <PortfolioStatValue>₹45K</PortfolioStatValue>
-                  <PortfolioStatLabel>Total Earnings</PortfolioStatLabel>
-                </PortfolioStat>
-              </PortfolioStats>
-            </PortfolioCard>
-          </PortfolioGrid>
-        </WrapperBox>
-      </PortfolioSection>
     </PageContainer>
   );
 };
@@ -853,81 +785,4 @@ const StatValue = styled.div`
 const StatLabel = styled.div`
   font-size: ${sharedTheme.typography.fontSizes.sm};
   color: #6b7280;
-`;
-
-const PortfolioSection = styled.div`
-  width: 100%;
-`;
-
-const PortfolioHeader = styled.div`
-  text-align: center;
-  margin-bottom: 1rem;
-`;
-
-const PortfolioTitle = styled.h2`
-  font-size: ${sharedTheme.typography.fontSizes.xxl};
-  font-weight: ${sharedTheme.typography.fontWeights.bold};
-  color: ${sharedTheme.colorVariants.secondary.dark};
-  margin: 0 0 0.5rem 0;
-`;
-
-const PortfolioSubtitle = styled.p`
-  font-size: ${sharedTheme.typography.fontSizes.lg};
-  color: #6b7280;
-  margin: 0;
-`;
-
-const PortfolioGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
-`;
-
-const PortfolioCard = styled.div`
-  background: ${sharedTheme.extendedDesignTokens.gradients.lightBlue};
-  border-radius: 12px;
-  padding: 1.5rem;
-  border: 1px solid #e5e7eb;
-  transition: all 0.2s ease;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-  }
-`;
-
-const PortfolioCardHeader = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-  color: ${sharedTheme.colorVariants.primary.dark};
-`;
-
-const PortfolioCardTitle = styled.h3`
-  font-size: ${sharedTheme.typography.fontSizes.lg};
-  font-weight: ${sharedTheme.typography.fontWeights.semibold};
-  margin: 0;
-`;
-
-const PortfolioStats = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-`;
-
-const PortfolioStat = styled.div`
-  text-align: center;
-`;
-
-const PortfolioStatValue = styled.div`
-  font-size: ${sharedTheme.typography.fontSizes.xxl};
-  font-weight: ${sharedTheme.typography.fontWeights.bold};
-  color: ${sharedTheme.colorVariants.secondary.dark};
-`;
-
-const PortfolioStatLabel = styled.div`
-  font-size: ${sharedTheme.typography.fontSizes.sm};
-  color: #6b7280;
-  margin-top: 0.25rem;
 `;
