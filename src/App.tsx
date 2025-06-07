@@ -12,6 +12,10 @@ import Dashboard from "./pages/influencer/Dashboard";
 import NotificationsPage from "./pages/influencer/Notifications/Notifications";
 import SettingsPage from "./pages/Settings/Settings";
 import LandingPage from "./pages/landing/Landing";
+import BrandDashboard from "./pages/brand/Dashboard/BrandDashboard";
+import CampaignsPage from "./pages/brand/campaign/BrandCampaign";
+import InfluencerApplicationsPage from "./pages/brand/campaign/InfluencerApplication";
+import CollaborationManagement from "./pages/brand/campaign/CollaborationManagement";
 
 // const Dashboard = () => <div>Analytics Page</div>;
 // const Settings = () => <div>Settings Page</div>;
@@ -98,6 +102,38 @@ const App = () => {
           element={
             <DashboardLayout>
               <SubmitContent />
+            </DashboardLayout>
+          }
+        />
+        <Route
+          path="/brandDashboard"
+          element={
+            <DashboardLayout>
+              <BrandDashboard />
+            </DashboardLayout>
+          }
+        />
+        <Route
+          path="/brandCampaign"
+          element={
+            <DashboardLayout>
+              <CampaignsPage />
+            </DashboardLayout>
+          }
+        />
+        <Route
+          path="/brandApplication"
+          element={
+            <DashboardLayout>
+              <InfluencerApplicationsPage />
+            </DashboardLayout>
+          }
+        />
+        <Route
+          path="/collabManagement"
+          element={
+            <DashboardLayout>
+              <CollaborationManagement />
             </DashboardLayout>
           }
         />

@@ -15,6 +15,8 @@ import {
   BrainCircuit,
   FolderKanban,
   Network,
+  BookUser,
+  Handshake,
 } from "lucide-react";
 import { Tooltip } from "antd";
 
@@ -42,12 +44,15 @@ const SidebarDivider = styled.div`
   opacity: 0.3;
 `;
 
-const SidebarLink = styled(Link)<{ active?: boolean; expanded?: boolean }>`
-  color: ${"#fff"};
+const SidebarLink = styled(Link)<{
+  active?: boolean;
+  expanded?: boolean;
+  disabled?: boolean;
+}>`
+  color: ${({ disabled }) => (disabled ? "#aaa" : "#fff")};
   text-decoration: none;
   margin: ${sharedTheme.spacing.xs} 0;
   display: flex;
-
   align-items: center;
   justify-content: ${({ expanded }) => (expanded ? "start" : "center")};
   padding: 8px 8px;
@@ -60,11 +65,11 @@ const SidebarLink = styled(Link)<{ active?: boolean; expanded?: boolean }>`
   border-radius: ${sharedTheme.borderRadius.md};
   background-color: ${({ active }) =>
     active ? "rgba(59, 72, 94)" : "transparent"};
+  pointer-events: ${({ disabled }) => (disabled ? "none" : "auto")};
 
   &:hover {
-    width: webkit-fill-available;
-    background-color: rgba(59, 72, 94);
-    color: "#fff";
+    background-color: ${({ disabled }) =>
+      disabled ? "transparent" : "rgba(59, 72, 94)"};
   }
 `;
 
@@ -82,31 +87,104 @@ const Sidebar = () => {
     divider?: boolean;
     highlight?: boolean;
     badge?: number;
+    isLocked?: boolean;
+    userType?: "influencer" | "brand" | "admin" | "all";
   }[] = [
-    { to: "/home", label: "Home", icon: Home },
-    { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { to: "/campaigns", label: "Campaigns", icon: FolderKanban },
-    { to: "/portfolio", label: "Portfolio", icon: Clapperboard },
+    { to: "/home", label: "Home", icon: Home, userType: "influencer" },
+    {
+      to: "/dashboard",
+      label: "Dashboard",
+      icon: LayoutDashboard,
+      userType: "influencer",
+    },
+    {
+      to: "/brandDashboard",
+      label: "Dashboard",
+      icon: LayoutDashboard,
+      userType: "brand",
+    },
+    {
+      to: "/campaigns",
+      label: "Campaigns",
+      icon: FolderKanban,
+      userType: "influencer",
+    },
+    {
+      to: "/brandCampaign",
+      label: "Campaigns",
+      icon: FolderKanban,
+      userType: "brand",
+    },
+    {
+      to: "/brandApplication",
+      label: "Applications",
+      icon: BookUser,
+      userType: "brand",
+    },
+    {
+      to: "/collabManagement",
+      label: "Collab Management",
+      icon: Handshake,
+      userType: "brand",
+    },
+    {
+      to: "/portfolio",
+      label: "Portfolio",
+      icon: Clapperboard,
+      userType: "influencer",
+    },
     { divider: true },
     {
       to: "/ai-analytics",
       label: "AI Analytics",
       icon: BrainCircuit,
       highlight: true,
+      isLocked: true, // 🔒 Locked
+      userType: "all",
     },
     {
       to: "/ai-automations",
       label: "AI Automations",
       icon: Network,
       highlight: true,
+      isLocked: true,
+      userType: "all",
     },
     { divider: true },
-    { to: "/profile", label: "Profile", icon: User },
-    { to: "/notifications", label: "Notifications", icon: Bell, badge: 12 },
-    { to: "/settings", label: "Settings", icon: Settings },
+    { to: "/profile", label: "Profile", icon: User, userType: "influencer" },
+    {
+      to: "/notifications",
+      label: "Notifications",
+      icon: Bell,
+      badge: 12,
+      userType: "influencer",
+    },
+    {
+      to: "/settings",
+      label: "Settings",
+      icon: Settings,
+      userType: "influencer",
+    },
     { divider: true },
-    { to: "/logout", label: "Logout", icon: LogOutIcon },
+    {
+      to: "/logout",
+      label: "Logout",
+      icon: LogOutIcon,
+      userType: "influencer",
+    },
   ];
+
+  const userType: "influencer" | "brand" = "brand";
+
+  // Filter nav items based on userType
+  const filteredNavItems = navItems.filter((item) => {
+    return (
+      item.userType === userType ||
+      item.userType === "all" ||
+      typeof item.userType === "undefined" || // fallback if userType not set
+      item.divider
+    );
+  });
 
   return (
     <SidebarWrapper expanded={isExpanded}>
@@ -144,16 +222,28 @@ const Sidebar = () => {
           {isExpanded ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
         </button>
       </div>
-      {navItems.map((item, index) => {
+      {filteredNavItems.map((item, index) => {
         if (item.divider) return <SidebarDivider key={`divider-${index}`} />;
         const IconComponent = item.icon;
+        const isActive = pathname === item.to;
+        const isDisabled = item.isLocked;
+
         return (
           <SidebarLink
             key={item.to}
             to={item.to!}
-            active={pathname === item.to}
+            active={isActive}
             expanded={isExpanded}
-            style={item.highlight ? { color: "#FFD700" } : {}}
+            disabled={isDisabled}
+            style={{
+              ...(item.highlight ? { color: "#FFD700" } : {}),
+              ...(isDisabled ? { cursor: "not-allowed", opacity: 0.6 } : {}),
+            }}
+            onClick={(e) => {
+              if (isDisabled) {
+                e.preventDefault();
+              }
+            }}
           >
             <Tooltip title={item.label}>
               <div style={{ position: "relative", display: "inline-flex" }}>
@@ -190,7 +280,12 @@ const Sidebar = () => {
               </div>
             </Tooltip>
             {isExpanded && (
-              <span style={item.highlight ? { color: "#FFD700" } : {}}>
+              <span
+                style={{
+                  ...(item.highlight ? { color: "#FFD700" } : {}),
+                  ...(isDisabled ? { color: "#aaa" } : {}),
+                }}
+              >
                 {item.label}
               </span>
             )}

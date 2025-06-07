@@ -27,6 +27,7 @@ import {
   Target,
   Briefcase,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 // Modern theme inspired by Medusa.js
 const theme = {
@@ -835,8 +836,10 @@ const ModernLandingPage: React.FC = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const navigate = useNavigate();
+
   const handleNavigation = (path: string) => {
-    console.log(`Navigating to: ${path}`);
+    navigate(path);
   };
 
   const features = [
@@ -942,7 +945,7 @@ const ModernLandingPage: React.FC = () => {
               <Button
                 variant="primary"
                 size="lg"
-                onClick={() => handleNavigation("/signup")}
+                onClick={() => handleNavigation("/home")}
               >
                 Start Creating
                 <ArrowRight size={20} />
