@@ -206,15 +206,20 @@ const MaxWidthWrapper = styled.div`
 // Header Components
 const Header = styled.header<{ isScrolled: boolean }>`
   position: fixed;
-  top: 0;
+  top: 10px;
   left: 0;
+  margin: auto;
+  width: 80%;
+  border-radius: ${theme.borderRadius["2xl"]};
   right: 0;
+  border: 2px solid #5a5a5a2e;
   z-index: 50;
   background: ${(props) =>
     props.isScrolled ? "rgba(250, 250, 250, 0.8)" : "rgba(250, 250, 250, 0.6)"};
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid
-    ${(props) => (props.isScrolled ? theme.colors.gray[200] : "transparent")};
+  /* border-bottom: 1px solid
+    ${(props) =>
+    props.isScrolled ? theme.colors.gray[200] : "transparent"}; */
   transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
 `;
 
@@ -799,6 +804,24 @@ const SocialLink = styled.a`
   }
 `;
 
+const BlurOverlay = styled.div`
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 120px;
+  background: linear-gradient(
+    to top,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(255, 255, 255, 0.7) 30%,
+    rgba(255, 255, 255, 0.3) 60%,
+    transparent 100%
+  );
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 5;
+  pointer-events: none;
+`;
 const FooterBottom = styled.div`
   max-width: 1280px;
   margin: 0 auto;
@@ -960,6 +983,7 @@ const ModernLandingPage: React.FC = () => {
               </Button>
             </HeroActions>
 
+            <BlurOverlay />
             <HeroImageContainer>
               <HeroImage>
                 <DashboardPreview

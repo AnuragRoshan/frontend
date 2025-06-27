@@ -30,6 +30,8 @@ const SidebarWrapper = styled.aside<{ expanded: boolean }>`
   align-items: ${({ expanded }) => (expanded ? "start" : "center")};
   gap: 1px;
   transition: width 0.3s ease;
+  margin: 0.5rem;
+  border-radius: ${sharedTheme.borderRadius.xl};
 
   @media (max-width: 768px) {
     display: none;
