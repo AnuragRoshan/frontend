@@ -21,7 +21,6 @@ const DashboardFooter = styled.footer`
   padding: 1.5rem;
   background-color: white;
   border-top: 1px solid #e5e7eb;
-  margin-top: 2rem;
 
   @media (max-width: 768px) {
     flex-direction: column;

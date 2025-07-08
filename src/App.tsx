@@ -13,9 +13,9 @@ import NotificationsPage from "./pages/influencer/Notifications/Notifications";
 import SettingsPage from "./pages/Settings/Settings";
 import LandingPage from "./pages/landing/Landing";
 import BrandDashboard from "./pages/brand/Dashboard/BrandDashboard";
-import CampaignsPage from "./pages/brand/campaign/BrandCampaign";
-import InfluencerApplicationsPage from "./pages/brand/campaign/InfluencerApplication";
-import CollaborationManagement from "./pages/brand/campaign/CollaborationManagement";
+import CampaignsPage from "./pages/brand/Campaign/BrandCampaign";
+import InfluencerApplicationsPage from "./pages/brand/Campaign/InfluencerApplication";
+import CollaborationManagement from "./pages/brand/Campaign/CollaborationManagement";
 
 // const Dashboard = () => <div>Analytics Page</div>;
 // const Settings = () => <div>Settings Page</div>;
