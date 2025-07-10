@@ -16,6 +16,9 @@ import BrandDashboard from "./pages/brand/Dashboard/BrandDashboard";
 import CampaignsPage from "./pages/brand/Campaign/BrandCampaign";
 import InfluencerApplicationsPage from "./pages/brand/Campaign/InfluencerApplication";
 import CollaborationManagement from "./pages/brand/Campaign/CollaborationManagement";
+import InfluencerDiscoveryPage from "./pages/brand/Campaign/Brand Campaign/InfluencerDiscovery/InfluencerDiscovery";
+import BulkDealsPage from "./pages/brand/Deal/BulkDeal/BulkDeal";
+import CustomDealsPage from "./pages/brand/Deal/CustomDeal/CustomDeal";
 
 // const Dashboard = () => <div>Analytics Page</div>;
 // const Settings = () => <div>Settings Page</div>;
@@ -134,6 +137,30 @@ const App = () => {
           element={
             <DashboardLayout>
               <CollaborationManagement />
+            </DashboardLayout>
+          }
+        />
+        <Route
+          path="/brand/campaigns/:campaignId/influencer-discovery"
+          element={
+            <DashboardLayout>
+              <InfluencerDiscoveryPage />
+            </DashboardLayout>
+          }
+        />
+        <Route
+          path="/bulk-deal/:campaignId"
+          element={
+            <DashboardLayout>
+              <BulkDealsPage />
+            </DashboardLayout>
+          }
+        />
+        <Route
+          path="/custom-deal/:campaignId"
+          element={
+            <DashboardLayout>
+              <CustomDealsPage />
             </DashboardLayout>
           }
         />

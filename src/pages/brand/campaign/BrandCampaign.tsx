@@ -1,8 +1,9 @@
-// CampaignsPage.tsx - Main component with Create Campaign functionality
+// CampaignsPage.tsx - Updated with Send Deals functionality
 "use client";
 
 import React, { useState } from "react";
 import styled from "styled-components";
+// import { useNavigate } from "react-router-dom"; // For navigation
 import { sharedTheme } from "../../../styles/theme/theme";
 
 // Component imports
@@ -20,7 +21,7 @@ import { EndCampaignModal } from "./Brand Campaign/component/Modal";
 import {
   CreateCampaignDrawer,
   CampaignFormData,
-} from "./Brand Campaign/Create Campaign Drawer/CreateCampaignDrawer";
+} from "./Brand Campaign/CreateCampaignDrawer/CreateCampaignDrawer";
 
 // Hook imports
 import { useCampaigns } from "./Brand Campaign/hooks/customHook";
@@ -31,6 +32,8 @@ import { useSelection } from "./Brand Campaign/hooks/customHook";
 import { Campaign, ViewMode } from "./Brand Campaign/types/campaign.types";
 
 const CampaignsPage: React.FC = () => {
+  // const navigate = useNavigate();
+
   // Custom hooks
   const {
     campaigns,
@@ -40,7 +43,8 @@ const CampaignsPage: React.FC = () => {
     sortConfig,
     handleSort,
     stats,
-    addCampaign, // New function to add campaign
+    addCampaign,
+    updateCampaign, // Need this for status updates
   } = useCampaigns();
 
   const { currentPage, totalPages, handlePageChange, paginatedItems } =
@@ -73,9 +77,8 @@ const CampaignsPage: React.FC = () => {
   };
 
   const handleSaveCampaign = (campaignData: CampaignFormData) => {
-    // Convert form data to Campaign object
     const newCampaign: Campaign = {
-      id: `campaign_${Date.now()}`, // Generate unique ID
+      id: `campaign_${Date.now()}`,
       name: campaignData.name,
       description: campaignData.description,
       category: campaignData.category,
@@ -83,14 +86,13 @@ const CampaignsPage: React.FC = () => {
       startDate: campaignData.startDate,
       endDate: campaignData.endDate,
       budget: campaignData.budget,
-      spent: 0, // Initially no spending
-      influencers: 0, // Initially no influencers
-      status: "draft", // New campaigns start as draft
+      spent: 0,
+      influencers: 0,
+      status: "draft", // Always starts as draft
       targetAudience: campaignData.targetAudience,
       objectives: campaignData.objectives,
       contentType: campaignData.contentType,
       hashtags: campaignData.hashtags,
-      // Default values for fields not in form
       impressions: 0,
       engagement: 0,
       conversions: 0,
@@ -99,13 +101,8 @@ const CampaignsPage: React.FC = () => {
       updatedAt: new Date().toISOString(),
     };
 
-    // Add campaign using the hook
     addCampaign(newCampaign);
-
-    // Show success message (you can implement toast notifications)
     console.log("Campaign created successfully:", newCampaign);
-
-    // Close the drawer
     setShowCreateDrawer(false);
   };
 
@@ -115,14 +112,60 @@ const CampaignsPage: React.FC = () => {
 
   const handleViewDetails = (campaign: Campaign) => {
     setSelectedCampaign(campaign);
-    // Open details drawer or navigate to details page
     console.log("View details for:", campaign.name);
+    // Navigate to campaign details page or open details drawer
   };
 
   const handleEditCampaign = (campaign: Campaign) => {
     setSelectedCampaign(campaign);
-    // Open edit drawer or navigate to edit page
     console.log("Edit campaign:", campaign.name);
+    // Open edit drawer with campaign data prefilled
+    // setShowCreateDrawer(true); // You can reuse the same drawer for editing
+  };
+
+  const handlePublishCampaign = (campaign: Campaign) => {
+    // Update campaign status to "live" and make it public
+    updateCampaign(campaign.id, {
+      status: "live",
+      // Add other fields that should be updated when publishing
+    });
+
+    console.log("Campaign published:", campaign.name);
+    // Show success notification
+  };
+
+  const handleSendDeals = (campaign: Campaign) => {
+    // Update campaign status to "private" when sending deals
+
+    // Navigate to influencer discovery page with campaign context
+    // router.push(`/brand/campaigns/${campaign.id}/influencer-discovery`);
+
+    console.log("Navigating to Send Deals for:", campaign.name);
+  };
+
+  const handlePauseCampaign = (campaign: Campaign) => {
+    updateCampaign(campaign.id, {
+      status: "paused",
+    });
+
+    console.log("Campaign paused:", campaign.name);
+    // Show success notification
+  };
+
+  const handleResumeCampaign = (campaign: Campaign) => {
+    updateCampaign(campaign.id, {
+      status: "live",
+    });
+
+    console.log("Campaign resumed:", campaign.name);
+    // Show success notification
+  };
+
+  const handleViewAnalytics = (campaign: Campaign) => {
+    // Navigate to analytics page or open analytics drawer
+    // router.push(`/brand/campaigns/${campaign.id}/analytics`);
+
+    console.log("View analytics for:", campaign.name);
   };
 
   const handleDeleteCampaign = (campaign: Campaign) => {
@@ -132,7 +175,7 @@ const CampaignsPage: React.FC = () => {
 
   const handleConfirmDelete = () => {
     if (selectedCampaign) {
-      // Implement delete functionality in useCampaigns hook
+      // Implement delete functionality
       console.log("Delete campaign:", selectedCampaign.name);
       // deleteCampaign(selectedCampaign.id);
     }
@@ -216,6 +259,12 @@ const CampaignsPage: React.FC = () => {
             <CampaignGrid
               campaigns={paginatedItems}
               onViewDetails={handleViewDetails}
+              onEditCampaign={handleEditCampaign}
+              onPublishCampaign={handlePublishCampaign}
+              onSendDeals={handleSendDeals}
+              onPauseCampaign={handlePauseCampaign}
+              onResumeCampaign={handleResumeCampaign}
+              onViewAnalytics={handleViewAnalytics}
             />
           )}
 
@@ -237,6 +286,9 @@ const CampaignsPage: React.FC = () => {
         isOpen={showCreateDrawer}
         onClose={() => setShowCreateDrawer(false)}
         onSave={handleSaveCampaign}
+        // If editing, you could pass existing campaign data:
+        // initialData={selectedCampaign}
+        // isEditing={!!selectedCampaign}
       />
 
       {/* Modals */}
