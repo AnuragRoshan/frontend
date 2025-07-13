@@ -1,95 +1,36 @@
 // pages/brand/campaign/BulkDeals/BulkDealsPage.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import styled from "styled-components";
 import { useParams, useNavigate } from "react-router-dom";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm, useFieldArray, Controller } from "react-hook-form";
 import {
   ArrowLeft,
-  ArrowRight,
+  // ArrowRight,
   DollarSign,
   Calendar,
   CheckCircle,
   AlertCircle,
   Plus,
   X,
-  Send,
+  // Send,
   Settings,
   Users,
+  Boxes,
+  ArrowRight,
+  Send,
 } from "lucide-react";
 import { sharedTheme } from "../../../../styles/theme/theme";
 import ActionButton from "../../Campaign/Brand Campaign/shared/ActionButton";
+import {
+  BulkDealFormSchema,
+  BulkDealFormData,
+  Campaign,
+  SelectedInfluencer,
+  validateStep,
+} from "./bulkDealSchema";
 
-// Extended Campaign interface with more realistic inherited data
-interface Campaign {
-  id: string;
-  name: string;
-  budget: number;
-  spent: number;
-  platform: string;
-  category: string;
-  hashtags: string[];
-  contentGuidelines: string[];
-  dosAndDonts: {
-    dos: string[];
-    donts: string[];
-  };
-  productDetails: string;
-  legalRequirements: string;
-  poc: {
-    name: string;
-    email: string;
-    phone: string;
-  };
-}
-
-interface SelectedInfluencer {
-  id: string;
-  username: string;
-  displayName: string;
-  profileImage: string;
-  followers: number;
-  engagementRate: number;
-  location: string;
-  suggestedRate: number;
-  rating: number;
-}
-
-interface BulkDealFormData {
-  // Financial Terms
-  dealAmount: number;
-  dealCurrency: string;
-  dealPaymentStructure: "upfront" | "milestone" | "completion" | "custom";
-  dealNegotiableAmount: boolean;
-
-  // Deliverables
-  dealDeliverables: {
-    dealDeliverableType: string;
-    dealDeliverablePlatform: string;
-    dealDeliverableQuantity: number;
-    dealDeliverableDescription: string;
-  }[];
-
-  // Timeline
-  dealSubmissionDeadline: string;
-  dealPostingDeadline: string;
-  dealExpiryDate: string;
-
-  // Content Requirements (with inheritance flags)
-  dealHashtags: string[];
-  dealContentGuidelines: string[];
-  dealDosAndDonts: {
-    dealDos: string[];
-    dealDonts: string[];
-  };
-
-  // Customization overrides
-  customizeHashtags: boolean;
-  customizeGuidelines: boolean;
-  customizeDosAndDonts: boolean;
-
-  // Message
-  dealApplicationMessage: string;
-}
-
+// Dummy Data
 const DUMMY_SELECTED_INFLUENCERS: SelectedInfluencer[] = [
   {
     id: "inf_001",
@@ -196,37 +137,65 @@ const BulkDealsPage: React.FC = () => {
   const selectedInfluencers: SelectedInfluencer[] = DUMMY_SELECTED_INFLUENCERS;
   const [currentStep, setCurrentStep] = useState(1);
   const [campaign, setCampaign] = useState<Campaign | null>(null);
-  const [formData, setFormData] = useState<BulkDealFormData>({
-    dealAmount: 0,
-    dealCurrency: "INR",
-    dealPaymentStructure: "completion",
-    dealNegotiableAmount: true,
-    dealDeliverables: [
-      {
-        dealDeliverableType: "Posts",
-        dealDeliverablePlatform: "Instagram",
-        dealDeliverableQuantity: 2,
-        dealDeliverableDescription:
-          "High-quality Instagram posts featuring the product",
+  const [customErrors, setCustomErrors] = useState<Record<string, string>>({});
+
+  // React Hook Form setup with Zod validation
+  const {
+    control,
+    handleSubmit,
+    watch,
+    setValue,
+    getValues,
+    formState: { errors, isValid },
+    trigger,
+    reset,
+  } = useForm<BulkDealFormData>({
+    resolver: zodResolver(BulkDealFormSchema),
+    mode: "onChange",
+    defaultValues: {
+      dealAmount: 0,
+      dealCurrency: "INR" as const,
+      dealPaymentStructure: "completion" as const,
+      dealNegotiableAmount: true,
+      dealDeliverables: [
+        {
+          dealDeliverableType: "Posts" as const,
+          dealDeliverablePlatform: "Instagram",
+          dealDeliverableQuantity: 2,
+          dealDeliverableDescription:
+            "High-quality Instagram posts featuring the product",
+        },
+      ],
+      dealSubmissionDeadline: "",
+      dealPostingDeadline: "",
+      dealExpiryDate: "7",
+      dealHashtags: [],
+      dealContentGuidelines: [],
+      dealDosAndDonts: {
+        dealDos: [],
+        dealDonts: [],
       },
-    ],
-    dealSubmissionDeadline: "",
-    dealPostingDeadline: "",
-    dealExpiryDate: "7",
-    dealHashtags: [],
-    dealContentGuidelines: [],
-    dealDosAndDonts: {
-      dealDos: [],
-      dealDonts: [],
+      customizeHashtags: false,
+      customizeGuidelines: false,
+      customizeDosAndDonts: false,
+      dealApplicationMessage:
+        "Hi {name}! We love your content and would love to collaborate with you for our latest campaign. Please check the details and let us know if you're interested!",
     },
-    customizeHashtags: false,
-    customizeGuidelines: false,
-    customizeDosAndDonts: false,
-    dealApplicationMessage:
-      "Hi {name}! We love your content and would love to collaborate with you for our latest campaign. Please check the details and let us know if you're interested!",
   });
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  // Field arrays for dynamic fields
+  const {
+    fields: deliverableFields,
+    append: appendDeliverable,
+    remove: removeDeliverable,
+  } = useFieldArray({
+    control,
+    name: "dealDeliverables",
+  });
+
+  // Watch form values for calculations
+  const watchedValues = watch();
+  const dealAmount = watch("dealAmount");
 
   // Enhanced mock campaign data with inherited content
   useEffect(() => {
@@ -276,151 +245,221 @@ const BulkDealsPage: React.FC = () => {
       };
       setCampaign(mockCampaign);
 
-      // Initialize form data with campaign-inherited content
-      setFormData((prev) => ({
-        ...prev,
+      // Initialize form with campaign data
+      reset({
+        ...getValues(),
         dealHashtags: mockCampaign.hashtags,
         dealContentGuidelines: mockCampaign.contentGuidelines,
         dealDosAndDonts: {
           dealDos: mockCampaign.dosAndDonts.dos,
           dealDonts: mockCampaign.dosAndDonts.donts,
         },
-        dealDeliverables: prev.dealDeliverables.map((d) => ({
+        dealDeliverables: getValues("dealDeliverables").map((d) => ({
           ...d,
-          dealDeliverablePlatform: mockCampaign.platform,
+          dealDeliverablePlatform: mockCampaign.platform as
+            | "Instagram"
+            | "YouTube"
+            | "LinkedIn"
+            | "Twitter"
+            | "Facebook"
+            | "Snapchat",
         })),
-      }));
+      });
     }
-  }, [campaignId]);
+  }, [campaignId, reset, getValues]);
 
-  // Calculate totals
-  const totalEstimatedCost = selectedInfluencers.length * formData.dealAmount;
-  const totalEstimatedReach = selectedInfluencers.reduce(
-    (sum, inf) => sum + inf.followers,
-    0
-  );
-  const remainingBudget = campaign ? campaign.budget - campaign.spent : 0;
+  // Memoized calculations
+  const calculations = useMemo(() => {
+    const totalEstimatedCost = selectedInfluencers.length * (dealAmount || 0);
+    const totalEstimatedReach = selectedInfluencers.reduce(
+      (sum, inf) => sum + inf.followers,
+      0
+    );
+    const remainingBudget = campaign ? campaign.budget - campaign.spent : 0;
+    const costPerReach =
+      totalEstimatedReach > 0 ? totalEstimatedCost / totalEstimatedReach : 0;
+
+    return {
+      totalEstimatedCost,
+      totalEstimatedReach,
+      remainingBudget,
+      costPerReach,
+    };
+  }, [dealAmount, selectedInfluencers, campaign]);
 
   // Content type options by platform
-  const getContentTypesByPlatform = (platform: string): string[] => {
-    const contentMap: Record<string, string[]> = {
-      Instagram: ["Posts", "Stories", "Reels", "IGTV", "Live Streams"],
-      YouTube: ["Videos", "Shorts", "Premieres"],
-      LinkedIn: ["Articles", "Live Events", "Documents"],
-      Twitter: ["Tweets", "Threads", "Spaces"],
-      Facebook: ["Posts", "Stories", "Videos", "Events"],
-      Snapchat: ["Snaps", "Spotlight", "Lenses"],
-    };
-    return contentMap[platform] || [];
-  };
+  const getContentTypesByPlatform = useCallback(
+    (platform: string): string[] => {
+      const contentMap: Record<string, string[]> = {
+        Instagram: ["Posts", "Stories", "Reels", "IGTV", "Live Streams"],
+        YouTube: ["Videos", "Shorts", "Premieres"],
+        LinkedIn: ["Articles", "Live Events", "Documents"],
+        Twitter: ["Tweets", "Threads", "Spaces"],
+        Facebook: ["Posts", "Stories", "Videos", "Events"],
+        Snapchat: ["Snaps", "Spotlight", "Lenses"],
+      };
+      return contentMap[platform] || [];
+    },
+    []
+  );
 
-  const handleInputChange = <K extends keyof BulkDealFormData>(
-    field: K,
-    value: BulkDealFormData[K]
-  ) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: "" }));
-    }
-  };
+  // Custom validation for business rules
+  const validateCustomRules = useCallback(
+    (step: number): boolean => {
+      const newErrors: Record<string, string> = {};
+      const currentValues = getValues();
 
-  const addDeliverable = () => {
-    const newDeliverable = {
-      dealDeliverableType: "Posts",
-      dealDeliverablePlatform: campaign?.platform || "Instagram",
-      dealDeliverableQuantity: 1,
-      dealDeliverableDescription: "Additional content deliverable",
-    };
-    setFormData((prev) => ({
-      ...prev,
-      dealDeliverables: [...prev.dealDeliverables, newDeliverable],
-    }));
-  };
+      switch (step) {
+        case 1:
+          // Budget validation
+          if (calculations.totalEstimatedCost > calculations.remainingBudget) {
+            newErrors.budget = "Total cost exceeds remaining campaign budget";
+          }
+          break;
+        case 2: {
+          // Timeline validation
+          const submissionDate = new Date(currentValues.dealSubmissionDeadline);
+          const postingDate = new Date(currentValues.dealPostingDeadline);
 
-  const removeDeliverable = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      dealDeliverables: prev.dealDeliverables.filter((_, i) => i !== index),
-    }));
-  };
-
-  const updateDeliverable = (
-    index: number,
-    field: string,
-    value: string | number
-  ) => {
-    setFormData((prev) => ({
-      ...prev,
-      dealDeliverables: prev.dealDeliverables.map((deliverable, i) =>
-        i === index ? { ...deliverable, [field]: value } : deliverable
-      ),
-    }));
-  };
-
-  const validateStep = (step: number): boolean => {
-    const newErrors: Record<string, string> = {};
-
-    switch (step) {
-      case 1: // Payment & Deliverables
-        if (!formData.dealAmount || formData.dealAmount <= 0) {
-          newErrors.dealAmount = "Amount must be greater than 0";
+          if (postingDate <= submissionDate) {
+            newErrors.dealPostingDeadline =
+              "Posting deadline must be after submission deadline";
+          }
+          break;
         }
-        if (totalEstimatedCost > remainingBudget) {
-          newErrors.budget = "Total cost exceeds remaining campaign budget";
-        }
-        if (formData.dealDeliverables.length === 0) {
-          newErrors.deliverables = "At least one deliverable is required";
-        }
-        break;
+      }
 
-      case 2: // Timeline & Customization
-        if (!formData.dealSubmissionDeadline) {
-          newErrors.dealSubmissionDeadline = "Submission deadline is required";
-        }
-        if (!formData.dealPostingDeadline) {
-          newErrors.dealPostingDeadline = "Posting deadline is required";
-        }
-        break;
-    }
+      setCustomErrors(newErrors);
+      return Object.keys(newErrors).length === 0;
+    },
+    [calculations, getValues]
+  );
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  // Step validation
+  const validateCurrentStep = useCallback(
+    async (step: number): Promise<boolean> => {
+      const currentValues = getValues();
 
-  const handleNext = () => {
-    if (validateStep(currentStep)) {
+      // Zod validation for current step
+      const zodValidation = validateStep(step, currentValues);
+
+      // Custom business rules validation
+      const customValidation = validateCustomRules(step);
+
+      // Trigger form validation for current step fields
+      const fieldsToValidate =
+        step === 1
+          ? ["dealAmount", "dealDeliverables", "dealPaymentStructure"]
+          : step === 2
+          ? ["dealSubmissionDeadline", "dealPostingDeadline", "dealExpiryDate"]
+          : [];
+
+      const formValidation = await trigger(
+        fieldsToValidate as Parameters<typeof trigger>[0]
+      );
+
+      return zodValidation.success && customValidation && formValidation;
+    },
+    [getValues, validateCustomRules, trigger]
+  );
+
+  // Navigation handlers
+  const handleNext = useCallback(async () => {
+    const isStepValid = await validateCurrentStep(currentStep);
+    if (isStepValid) {
       setCurrentStep((prev) => Math.min(prev + 1, 3));
     }
-  };
+  }, [currentStep, validateCurrentStep]);
 
-  const handlePrevious = () => {
+  const handlePrevious = useCallback(() => {
     setCurrentStep((prev) => Math.max(prev - 1, 1));
-  };
+  }, []);
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     navigate(`/brand/campaigns/${campaignId}/influencer-discovery`);
-  };
+  }, [campaignId, navigate]);
 
-  const handleSendDeals = () => {
-    if (validateStep(currentStep)) {
+  // Form submission
+  const handleSendDeals = useCallback(
+    (data: BulkDealFormData) => {
       console.log("Sending bulk deals:", {
-        campaignId,
-        selectedInfluencers,
-        dealData: formData,
+        dealData: data,
       });
 
       navigate(`/brand/campaigns/${campaignId}/deals-sent`, {
         state: {
           dealsCount: selectedInfluencers.length,
-          totalCost: totalEstimatedCost,
+          totalCost: calculations.totalEstimatedCost,
           dealType: "bulk",
         },
       });
-    }
-  };
+    },
+    [campaignId, selectedInfluencers, calculations, navigate]
+  );
 
-  // Influencer Glimpse Component
-  const InfluencerGlimpse: React.FC = () => {
+  // Add deliverable handler
+  const addDeliverable = useCallback(() => {
+    appendDeliverable({
+      dealDeliverableType: "Posts",
+      dealDeliverablePlatform:
+        (campaign?.platform as
+          | "Instagram"
+          | "YouTube"
+          | "LinkedIn"
+          | "Twitter"
+          | "Facebook"
+          | "Snapchat") || "Instagram",
+      dealDeliverableQuantity: 1,
+      dealDeliverableDescription: "Additional content deliverable",
+    });
+  }, [appendDeliverable, campaign?.platform]);
+
+  // Hashtag management
+  const addHashtag = useCallback(
+    (hashtag: string) => {
+      const currentHashtags = getValues("dealHashtags");
+      if (hashtag.startsWith("#") && !currentHashtags.includes(hashtag)) {
+        setValue("dealHashtags", [...currentHashtags, hashtag]);
+      }
+    },
+    [getValues, setValue]
+  );
+
+  const removeHashtag = useCallback(
+    (index: number) => {
+      const currentHashtags = getValues("dealHashtags");
+      setValue(
+        "dealHashtags",
+        currentHashtags.filter((_, i) => i !== index)
+      );
+    },
+    [getValues, setValue]
+  );
+
+  // Content guideline management
+  const addGuideline = useCallback(
+    (guideline: string) => {
+      const currentGuidelines = getValues("dealContentGuidelines");
+      if (guideline.trim() && !currentGuidelines.includes(guideline)) {
+        setValue("dealContentGuidelines", [...currentGuidelines, guideline]);
+      }
+    },
+    [getValues, setValue]
+  );
+
+  const removeGuideline = useCallback(
+    (index: number) => {
+      const currentGuidelines = getValues("dealContentGuidelines");
+      setValue(
+        "dealContentGuidelines",
+        currentGuidelines.filter((_, i) => i !== index)
+      );
+    },
+    [getValues, setValue]
+  );
+
+  // Memoized Influencer Glimpse Component
+  const InfluencerGlimpse: React.FC = React.memo(() => {
     const displayCount = 4;
     const remainingCount = selectedInfluencers.length - displayCount;
 
@@ -446,11 +485,11 @@ const BulkDealsPage: React.FC = () => {
           )}
         </ProfilePicsContainer>
         <EstimatedReach>
-          Est. Reach: {(totalEstimatedReach / 1000).toFixed(0)}K
+          Est. Reach: {(calculations.totalEstimatedReach / 1000).toFixed(0)}K
         </EstimatedReach>
       </InfluencerGlimpseContainer>
     );
-  };
+  });
 
   if (!campaign) {
     return (
@@ -497,74 +536,87 @@ const BulkDealsPage: React.FC = () => {
 
         <FormGroup>
           <FormLabel required>Payment Amount per Influencer (₹)</FormLabel>
-          <FormInput
-            type="number"
-            value={formData.dealAmount || ""}
-            onChange={(e) =>
-              handleInputChange("dealAmount", Number(e.target.value))
-            }
-            placeholder="Enter amount per influencer"
-            error={!!errors.dealAmount}
+          <Controller
+            name="dealAmount"
+            control={control}
+            render={({ field }) => (
+              <FormInput
+                type="number"
+                {...field}
+                onChange={(e) => field.onChange(Number(e.target.value))}
+                placeholder="Enter amount per influencer"
+                error={!!errors.dealAmount}
+              />
+            )}
           />
-          {errors.dealAmount && <ErrorText>{errors.dealAmount}</ErrorText>}
+          {errors.dealAmount && (
+            <ErrorText>{errors.dealAmount.message}</ErrorText>
+          )}
         </FormGroup>
 
         <FormGroup>
           <FormLabel>Payment Structure</FormLabel>
-          <PaymentOptions>
-            {(["completion", "upfront", "milestone"] as const).map(
-              (structure) => (
-                <PaymentOption
-                  key={structure}
-                  active={formData.dealPaymentStructure === structure}
-                  onClick={() =>
-                    handleInputChange("dealPaymentStructure", structure)
-                  }
-                >
-                  <div className="title">
-                    {structure === "completion" && "On Completion"}
-                    {structure === "upfront" && "Upfront Payment"}
-                    {structure === "milestone" && "Milestone Based"}
-                  </div>
-                  <div className="description">
-                    {structure === "completion" && "Pay after content is live"}
-                    {structure === "upfront" && "Pay immediately on acceptance"}
-                    {structure === "milestone" && "Pay in stages"}
-                  </div>
-                </PaymentOption>
-              )
+          <Controller
+            name="dealPaymentStructure"
+            control={control}
+            render={({ field }) => (
+              <PaymentOptions>
+                {(["completion", "upfront", "milestone"] as const).map(
+                  (structure) => (
+                    <PaymentOption
+                      key={structure}
+                      active={field.value === structure}
+                      onClick={() => field.onChange(structure)}
+                    >
+                      <div className="title">
+                        {structure === "completion" && "On Completion"}
+                        {structure === "upfront" && "Upfront Payment"}
+                        {structure === "milestone" && "Milestone Based"}
+                      </div>
+                      <div className="description">
+                        {structure === "completion" &&
+                          "Pay after content is live"}
+                        {structure === "upfront" &&
+                          "Pay immediately on acceptance"}
+                        {structure === "milestone" && "Pay in stages"}
+                      </div>
+                    </PaymentOption>
+                  )
+                )}
+              </PaymentOptions>
             )}
-          </PaymentOptions>
+          />
         </FormGroup>
 
-        <CheckboxGroup>
-          <Checkbox
-            checked={formData.dealNegotiableAmount}
-            onChange={(e) =>
-              handleInputChange("dealNegotiableAmount", e.target.checked)
-            }
-          />
-          <label>Allow individual negotiation</label>
-        </CheckboxGroup>
+        <Controller
+          name="dealNegotiableAmount"
+          control={control}
+          render={({ field }) => (
+            <CheckboxGroup>
+              <Checkbox checked={field.value} onChange={field.onChange} />
+              <label>Allow individual negotiation</label>
+            </CheckboxGroup>
+          )}
+        />
 
-        <BudgetSummary error={!!errors.budget}>
+        <BudgetSummary error={!!customErrors.budget}>
           <BudgetItem>
             <span>Selected Influencers:</span>
             <span>{selectedInfluencers.length}</span>
           </BudgetItem>
           <BudgetItem>
             <span>Amount per Influencer:</span>
-            <span>₹{formData.dealAmount.toLocaleString()}</span>
+            <span>₹{(dealAmount || 0).toLocaleString()}</span>
           </BudgetItem>
           <BudgetItem className="total">
             <span>Total Estimated Cost:</span>
-            <span>₹{totalEstimatedCost.toLocaleString()}</span>
+            <span>₹{calculations.totalEstimatedCost.toLocaleString()}</span>
           </BudgetItem>
           <BudgetItem>
             <span>Remaining Budget:</span>
-            <span>₹{remainingBudget.toLocaleString()}</span>
+            <span>₹{calculations.remainingBudget.toLocaleString()}</span>
           </BudgetItem>
-          {errors.budget && <ErrorText>{errors.budget}</ErrorText>}
+          {customErrors.budget && <ErrorText>{customErrors.budget}</ErrorText>}
         </BudgetSummary>
       </SectionCard>
 
@@ -573,11 +625,11 @@ const BulkDealsPage: React.FC = () => {
         <SectionCardTitle>📝 Deliverables</SectionCardTitle>
 
         <DeliverablesContainer>
-          {formData.dealDeliverables.map((deliverable, index) => (
-            <DeliverableCard key={index}>
+          {deliverableFields.map((field, index) => (
+            <DeliverableCard key={field.id}>
               <DeliverableHeader>
                 <h4>Deliverable {index + 1}</h4>
-                {formData.dealDeliverables.length > 1 && (
+                {deliverableFields.length > 1 && (
                   <RemoveButton onClick={() => removeDeliverable(index)}>
                     <X size={16} />
                   </RemoveButton>
@@ -587,57 +639,71 @@ const BulkDealsPage: React.FC = () => {
               <FormRow>
                 <FormGroup>
                   <FormLabel>Content Type</FormLabel>
-                  <FormSelect
-                    value={deliverable.dealDeliverableType}
-                    onChange={(e) =>
-                      updateDeliverable(
-                        index,
-                        "dealDeliverableType",
-                        e.target.value
-                      )
-                    }
-                  >
-                    {getContentTypesByPlatform(campaign.platform).map(
-                      (type) => (
-                        <option key={type} value={type}>
-                          {type}
-                        </option>
-                      )
+                  <Controller
+                    name={`dealDeliverables.${index}.dealDeliverableType`}
+                    control={control}
+                    render={({ field }) => (
+                      <FormSelect value={field.value} onChange={field.onChange}>
+                        {getContentTypesByPlatform(campaign.platform).map(
+                          (type) => (
+                            <option key={type} value={type}>
+                              {type}
+                            </option>
+                          )
+                        )}
+                      </FormSelect>
                     )}
-                  </FormSelect>
+                  />
                 </FormGroup>
 
                 <FormGroup>
                   <FormLabel>Quantity</FormLabel>
-                  <FormInput
-                    type="number"
-                    min="1"
-                    max="50"
-                    value={deliverable.dealDeliverableQuantity}
-                    onChange={(e) =>
-                      updateDeliverable(
-                        index,
-                        "dealDeliverableQuantity",
-                        Number(e.target.value)
-                      )
-                    }
+                  <Controller
+                    name={`dealDeliverables.${index}.dealDeliverableQuantity`}
+                    control={control}
+                    render={({ field }) => (
+                      <FormInput
+                        type="number"
+                        min="1"
+                        max="50"
+                        {...field}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      />
+                    )}
                   />
+                  {errors.dealDeliverables?.[index]
+                    ?.dealDeliverableQuantity && (
+                    <ErrorText>
+                      {
+                        errors.dealDeliverables[index]?.dealDeliverableQuantity
+                          ?.message
+                      }
+                    </ErrorText>
+                  )}
                 </FormGroup>
               </FormRow>
 
               <FormGroup>
                 <FormLabel>Description</FormLabel>
-                <FormTextarea
-                  value={deliverable.dealDeliverableDescription}
-                  onChange={(e) =>
-                    updateDeliverable(
-                      index,
-                      "dealDeliverableDescription",
-                      e.target.value
-                    )
-                  }
-                  placeholder="Describe what this deliverable should include..."
+                <Controller
+                  name={`dealDeliverables.${index}.dealDeliverableDescription`}
+                  control={control}
+                  render={({ field }) => (
+                    <FormTextarea
+                      {...field}
+                      placeholder="Describe what this deliverable should include..."
+                    />
+                  )}
                 />
+                {errors.dealDeliverables?.[index]
+                  ?.dealDeliverableDescription && (
+                  <ErrorText>
+                    {
+                      errors.dealDeliverables[index]?.dealDeliverableDescription
+                        ?.message
+                    }
+                  </ErrorText>
+                )}
               </FormGroup>
             </DeliverableCard>
           ))}
@@ -648,7 +714,9 @@ const BulkDealsPage: React.FC = () => {
           </AddButton>
         </DeliverablesContainer>
 
-        {errors.deliverables && <ErrorText>{errors.deliverables}</ErrorText>}
+        {errors.dealDeliverables && (
+          <ErrorText>{errors.dealDeliverables.message}</ErrorText>
+        )}
       </SectionCard>
     </StepContent>
   );
@@ -667,48 +735,64 @@ const BulkDealsPage: React.FC = () => {
         <FormRow>
           <FormGroup>
             <FormLabel required>Content Submission Deadline</FormLabel>
-            <FormInput
-              type="datetime-local"
-              value={formData.dealSubmissionDeadline}
-              onChange={(e) =>
-                handleInputChange("dealSubmissionDeadline", e.target.value)
-              }
-              error={!!errors.dealSubmissionDeadline}
+            <Controller
+              name="dealSubmissionDeadline"
+              control={control}
+              render={({ field }) => (
+                <FormInput
+                  type="datetime-local"
+                  {...field}
+                  error={!!errors.dealSubmissionDeadline}
+                />
+              )}
             />
             {errors.dealSubmissionDeadline && (
-              <ErrorText>{errors.dealSubmissionDeadline}</ErrorText>
+              <ErrorText>{errors.dealSubmissionDeadline.message}</ErrorText>
             )}
           </FormGroup>
 
           <FormGroup>
             <FormLabel required>Content Go-Live Date</FormLabel>
-            <FormInput
-              type="datetime-local"
-              value={formData.dealPostingDeadline}
-              onChange={(e) =>
-                handleInputChange("dealPostingDeadline", e.target.value)
-              }
-              error={!!errors.dealPostingDeadline}
+            <Controller
+              name="dealPostingDeadline"
+              control={control}
+              render={({ field }) => (
+                <FormInput
+                  type="datetime-local"
+                  {...field}
+                  error={
+                    !!(
+                      errors.dealPostingDeadline ||
+                      customErrors.dealPostingDeadline
+                    )
+                  }
+                />
+              )}
             />
-            {errors.dealPostingDeadline && (
-              <ErrorText>{errors.dealPostingDeadline}</ErrorText>
+            {(errors.dealPostingDeadline ||
+              customErrors.dealPostingDeadline) && (
+              <ErrorText>
+                {errors.dealPostingDeadline?.message ||
+                  customErrors.dealPostingDeadline}
+              </ErrorText>
             )}
           </FormGroup>
         </FormRow>
 
         <FormGroup>
           <FormLabel>Deal Expiry Period</FormLabel>
-          <FormSelect
-            value={formData.dealExpiryDate}
-            onChange={(e) =>
-              handleInputChange("dealExpiryDate", e.target.value)
-            }
-          >
-            <option value="3">3 days</option>
-            <option value="7">7 days</option>
-            <option value="14">14 days</option>
-            <option value="30">30 days</option>
-          </FormSelect>
+          <Controller
+            name="dealExpiryDate"
+            control={control}
+            render={({ field }) => (
+              <FormSelect value={field.value} onChange={field.onChange}>
+                <option value="3">3 days</option>
+                <option value="7">7 days</option>
+                <option value="14">14 days</option>
+                <option value="30">30 days</option>
+              </FormSelect>
+            )}
+          />
         </FormGroup>
       </SectionCard>
 
@@ -731,37 +815,29 @@ const BulkDealsPage: React.FC = () => {
         <FormGroup>
           <FormLabelRow>
             <FormLabel>
-              Required Hashtags ({formData.dealHashtags.length})
+              Required Hashtags ({watchedValues.dealHashtags?.length || 0})
             </FormLabel>
-            <CustomizeToggle
-              active={formData.customizeHashtags}
-              onClick={() =>
-                handleInputChange(
-                  "customizeHashtags",
-                  !formData.customizeHashtags
-                )
-              }
-            >
-              <Settings size={14} />
-              {formData.customizeHashtags
-                ? "Using Custom"
-                : "Using Campaign Default"}
-            </CustomizeToggle>
+            <Controller
+              name="customizeHashtags"
+              control={control}
+              render={({ field }) => (
+                <CustomizeToggle
+                  active={field.value}
+                  onClick={() => field.onChange(!field.value)}
+                >
+                  <Settings size={14} />
+                  {field.value ? "Using Custom" : "Using Campaign Default"}
+                </CustomizeToggle>
+              )}
+            />
           </FormLabelRow>
 
           <TagContainer>
-            {formData.dealHashtags.map((hashtag, index) => (
-              <Tag key={index} inherited={!formData.customizeHashtags}>
+            {watchedValues.dealHashtags?.map((hashtag, index) => (
+              <Tag key={index} inherited={!watchedValues.customizeHashtags}>
                 {hashtag}
-                {formData.customizeHashtags && (
-                  <button
-                    onClick={() => {
-                      const newHashtags = formData.dealHashtags.filter(
-                        (_, i) => i !== index
-                      );
-                      handleInputChange("dealHashtags", newHashtags);
-                    }}
-                  >
+                {watchedValues.customizeHashtags && (
+                  <button onClick={() => removeHashtag(index)}>
                     <X size={12} />
                   </button>
                 )}
@@ -769,7 +845,7 @@ const BulkDealsPage: React.FC = () => {
             ))}
           </TagContainer>
 
-          {formData.customizeHashtags && (
+          {watchedValues.customizeHashtags && (
             <FormInput
               type="text"
               placeholder="Add hashtag (e.g., #campaign)"
@@ -777,15 +853,15 @@ const BulkDealsPage: React.FC = () => {
                 if (e.key === "Enter") {
                   const value = (e.target as HTMLInputElement).value.trim();
                   if (value && value.startsWith("#")) {
-                    handleInputChange("dealHashtags", [
-                      ...formData.dealHashtags,
-                      value,
-                    ]);
+                    addHashtag(value);
                     (e.target as HTMLInputElement).value = "";
                   }
                 }
               }}
             />
+          )}
+          {errors.dealHashtags && (
+            <ErrorText>{errors.dealHashtags.message}</ErrorText>
           )}
         </FormGroup>
 
@@ -793,41 +869,33 @@ const BulkDealsPage: React.FC = () => {
         <FormGroup>
           <FormLabelRow>
             <FormLabel>
-              Content Guidelines ({formData.dealContentGuidelines.length})
+              Content Guidelines (
+              {watchedValues.dealContentGuidelines?.length || 0})
             </FormLabel>
-            <CustomizeToggle
-              active={formData.customizeGuidelines}
-              onClick={() =>
-                handleInputChange(
-                  "customizeGuidelines",
-                  !formData.customizeGuidelines
-                )
-              }
-            >
-              <Settings size={14} />
-              {formData.customizeGuidelines
-                ? "Using Custom"
-                : "Using Campaign Default"}
-            </CustomizeToggle>
+            <Controller
+              name="customizeGuidelines"
+              control={control}
+              render={({ field }) => (
+                <CustomizeToggle
+                  active={field.value}
+                  onClick={() => field.onChange(!field.value)}
+                >
+                  <Settings size={14} />
+                  {field.value ? "Using Custom" : "Using Campaign Default"}
+                </CustomizeToggle>
+              )}
+            />
           </FormLabelRow>
 
           <GuidelinesList>
-            {formData.dealContentGuidelines.map((guideline, index) => (
+            {watchedValues.dealContentGuidelines?.map((guideline, index) => (
               <GuidelineItem
                 key={index}
-                inherited={!formData.customizeGuidelines}
+                inherited={!watchedValues.customizeGuidelines}
               >
                 <span>• {guideline}</span>
-                {formData.customizeGuidelines && (
-                  <button
-                    onClick={() => {
-                      const newGuidelines =
-                        formData.dealContentGuidelines.filter(
-                          (_, i) => i !== index
-                        );
-                      handleInputChange("dealContentGuidelines", newGuidelines);
-                    }}
-                  >
+                {watchedValues.customizeGuidelines && (
+                  <button onClick={() => removeGuideline(index)}>
                     <X size={14} />
                   </button>
                 )}
@@ -835,7 +903,7 @@ const BulkDealsPage: React.FC = () => {
             ))}
           </GuidelinesList>
 
-          {formData.customizeGuidelines && (
+          {watchedValues.customizeGuidelines && (
             <FormInput
               type="text"
               placeholder="Add new guideline..."
@@ -843,29 +911,35 @@ const BulkDealsPage: React.FC = () => {
                 if (e.key === "Enter") {
                   const value = (e.target as HTMLInputElement).value.trim();
                   if (value) {
-                    handleInputChange("dealContentGuidelines", [
-                      ...formData.dealContentGuidelines,
-                      value,
-                    ]);
+                    addGuideline(value);
                     (e.target as HTMLInputElement).value = "";
                   }
                 }
               }}
             />
           )}
+          {errors.dealContentGuidelines && (
+            <ErrorText>{errors.dealContentGuidelines.message}</ErrorText>
+          )}
         </FormGroup>
 
         {/* Message Template */}
         <FormGroup>
           <FormLabel>Message Template</FormLabel>
-          <FormTextarea
-            value={formData.dealApplicationMessage}
-            onChange={(e) =>
-              handleInputChange("dealApplicationMessage", e.target.value)
-            }
-            placeholder="Hi {name}! We love your content and would love to collaborate..."
-            rows={3}
+          <Controller
+            name="dealApplicationMessage"
+            control={control}
+            render={({ field }) => (
+              <FormTextarea
+                {...field}
+                placeholder="Hi {name}! We love your content and would love to collaborate..."
+                rows={3}
+              />
+            )}
           />
+          {errors.dealApplicationMessage && (
+            <ErrorText>{errors.dealApplicationMessage.message}</ErrorText>
+          )}
         </FormGroup>
       </SectionCard>
     </StepContent>
@@ -884,30 +958,36 @@ const BulkDealsPage: React.FC = () => {
         <ReviewGrid>
           <ReviewItem>
             <ReviewLabel>Payment per Influencer:</ReviewLabel>
-            <ReviewValue>₹{formData.dealAmount.toLocaleString()}</ReviewValue>
+            <ReviewValue>
+              ₹{(watchedValues.dealAmount || 0).toLocaleString()}
+            </ReviewValue>
           </ReviewItem>
           <ReviewItem>
             <ReviewLabel>Payment Structure:</ReviewLabel>
-            <ReviewValue>{formData.dealPaymentStructure}</ReviewValue>
+            <ReviewValue>{watchedValues.dealPaymentStructure}</ReviewValue>
           </ReviewItem>
           <ReviewItem>
             <ReviewLabel>Total Deliverables:</ReviewLabel>
-            <ReviewValue>{formData.dealDeliverables.length} types</ReviewValue>
+            <ReviewValue>
+              {watchedValues.dealDeliverables?.length || 0} types
+            </ReviewValue>
           </ReviewItem>
           <ReviewItem>
             <ReviewLabel>Content Guidelines:</ReviewLabel>
             <ReviewValue>
-              {formData.dealContentGuidelines.length} guidelines
+              {watchedValues.dealContentGuidelines?.length || 0} guidelines
             </ReviewValue>
           </ReviewItem>
           <ReviewItem>
             <ReviewLabel>Required Hashtags:</ReviewLabel>
-            <ReviewValue>{formData.dealHashtags.length} hashtags</ReviewValue>
+            <ReviewValue>
+              {watchedValues.dealHashtags?.length || 0} hashtags
+            </ReviewValue>
           </ReviewItem>
           <ReviewItem>
             <ReviewLabel>Negotiable:</ReviewLabel>
             <ReviewValue>
-              {formData.dealNegotiableAmount ? "Yes" : "No"}
+              {watchedValues.dealNegotiableAmount ? "Yes" : "No"}
             </ReviewValue>
           </ReviewItem>
         </ReviewGrid>
@@ -915,7 +995,7 @@ const BulkDealsPage: React.FC = () => {
         <CostBreakdown>
           <CostItem>
             <span>Cost per Influencer:</span>
-            <span>₹{formData.dealAmount.toLocaleString()}</span>
+            <span>₹{(watchedValues.dealAmount || 0).toLocaleString()}</span>
           </CostItem>
           <CostItem>
             <span>Number of Influencers:</span>
@@ -923,19 +1003,35 @@ const BulkDealsPage: React.FC = () => {
           </CostItem>
           <CostItem className="total">
             <span>Total Campaign Cost:</span>
-            <span>₹{totalEstimatedCost.toLocaleString()}</span>
+            <span>₹{calculations.totalEstimatedCost.toLocaleString()}</span>
           </CostItem>
           <CostItem>
             <span>Estimated Reach:</span>
-            <span>{totalEstimatedReach.toLocaleString()}</span>
+            <span>{calculations.totalEstimatedReach.toLocaleString()}</span>
           </CostItem>
           <CostItem>
             <span>Cost per Reach:</span>
-            <span>
-              ₹{(totalEstimatedCost / totalEstimatedReach).toFixed(2)}
-            </span>
+            <span>₹{calculations.costPerReach.toFixed(2)}</span>
           </CostItem>
         </CostBreakdown>
+
+        {/* Validation Summary */}
+        {!isValid && (
+          <ValidationSummary>
+            <AlertCircle size={16} />
+            <div>
+              <strong>Please fix the following issues before sending:</strong>
+              <ul>
+                {Object.entries(errors).map(([key, error]) => (
+                  <li key={key}>{error?.message || "Invalid value"}</li>
+                ))}
+                {Object.entries(customErrors).map(([key, error]) => (
+                  <li key={key}>{error}</li>
+                ))}
+              </ul>
+            </div>
+          </ValidationSummary>
+        )}
       </ReviewSection>
     </StepContent>
   );
@@ -949,7 +1045,9 @@ const BulkDealsPage: React.FC = () => {
         </BackButton>
 
         <HeaderContent>
-          <PageTitle>📦 Bulk Deal Setup</PageTitle>
+          <PageTitle>
+            <Boxes /> Bulk Deal Setup
+          </PageTitle>
           <PageSubtitle>{campaign.name}</PageSubtitle>
         </HeaderContent>
 
@@ -958,41 +1056,43 @@ const BulkDealsPage: React.FC = () => {
 
       {renderStepIndicator()}
 
-      <FormContainer>
-        {currentStep === 1 && renderStep1()}
-        {currentStep === 2 && renderStep2()}
-        {currentStep === 3 && renderStep3()}
-      </FormContainer>
+      <form>
+        <FormContainer>
+          {currentStep === 1 && renderStep1()}
+          {currentStep === 2 && renderStep2()}
+          {currentStep === 3 && renderStep3()}
+        </FormContainer>
 
-      <StickyFooter>
-        <FooterActions>
-          {currentStep > 1 && (
-            <ActionButton onClick={handlePrevious} variant="secondary">
-              <ArrowLeft size={16} />
-              Previous
-            </ActionButton>
-          )}
+        <StickyFooter>
+          <FooterActions>
+            {currentStep > 1 && (
+              <ActionButton onClick={handlePrevious} variant="secondary">
+                <ArrowLeft size={16} />
+                Previous
+              </ActionButton>
+            )}
 
-          <div style={{ flex: 1 }} />
+            <div style={{ flex: 1 }} />
 
-          {currentStep < 3 ? (
-            <ActionButton onClick={handleNext} primary>
-              Next
-              <ArrowRight size={16} />
-            </ActionButton>
-          ) : (
-            <ActionButton onClick={handleSendDeals} primary>
-              <Send size={16} />
-              Send All Deals
-            </ActionButton>
-          )}
-        </FooterActions>
-      </StickyFooter>
+            {currentStep < 3 ? (
+              <ActionButton onClick={handleNext} primary>
+                Next
+                <ArrowRight size={16} />
+              </ActionButton>
+            ) : (
+              <ActionButton onClick={handleSubmit(handleSendDeals)} primary>
+                <Send size={16} />
+                Send All Deals
+              </ActionButton>
+            )}
+          </FooterActions>
+        </StickyFooter>
+      </form>
     </PageContainer>
   );
 };
 
-// Styled Components
+// Styled Components (keeping all existing styles and adding new ones)
 const PageContainer = styled.div`
   min-height: 100vh;
   background-color: #f9fafb;
@@ -1637,11 +1737,37 @@ const CostItem = styled.div`
   }
 `;
 
+const ValidationSummary = styled.div`
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #fee2e2;
+  border: 1px solid #ef4444;
+  border-radius: 8px;
+  font-size: ${sharedTheme.typography.fontSizes.sm};
+  margin-top: 1.5rem;
+  color: #991b1b;
+
+  ul {
+    margin: 0.5rem 0 0 0;
+    padding-left: 1rem;
+  }
+
+  li {
+    margin-bottom: 0.25rem;
+  }
+`;
+
 const StickyFooter = styled.div`
+  /* position: fixed; */
+  bottom: 0;
+  left: 0;
+  right: 0;
   border-radius: 12px;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
   background: white;
   border: 1px solid #e5e7eb;
+  border-bottom: none;
   padding: 1rem 2rem;
   z-index: 10;
 `;

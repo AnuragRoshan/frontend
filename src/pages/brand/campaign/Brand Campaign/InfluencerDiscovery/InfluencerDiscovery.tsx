@@ -14,6 +14,9 @@ import {
   Eye,
   Star,
   Check,
+  HandCoins,
+  ChartNetwork,
+  CheckCheck,
 } from "lucide-react";
 import { sharedTheme } from "../../../../../styles/theme/theme";
 import ActionButton from "../shared/ActionButton";
@@ -50,13 +53,13 @@ interface Influencer {
   recentContent: string[];
 }
 
-interface FilterState {
-  location: string[];
-  followers: { min: number; max: number };
-  engagement: number;
-  category: string[];
-  priceRange: { min: number; max: number };
-}
+// interface FilterState {
+//   location: string[];
+//   followers: { min: number; max: number };
+//   engagement: number;
+//   category: string[];
+//   priceRange: { min: number; max: number };
+// }
 
 const InfluencerDiscoveryPage: React.FC = () => {
   const { campaignId } = useParams<{ campaignId: string }>();
@@ -67,13 +70,13 @@ const InfluencerDiscoveryPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedInfluencers, setSelectedInfluencers] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState<FilterState>({
-    location: [],
-    followers: { min: 0, max: 1000000 },
-    engagement: 0,
-    category: [],
-    priceRange: { min: 0, max: 100000 },
-  });
+  // const [filters, setFilters] = useState<FilterState>({
+  //   location: [],
+  //   followers: { min: 0, max: 1000000 },
+  //   engagement: 0,
+  //   category: [],
+  //   priceRange: { min: 0, max: 100000 },
+  // });
 
   // Mock campaign data - replace with actual API call
   useEffect(() => {
@@ -220,12 +223,12 @@ const InfluencerDiscoveryPage: React.FC = () => {
 
   const handleBulkDeals = () => {
     console.log("Navigate to Bulk Deals with:", selectedInfluencers);
-    // navigate(`/brand/campaigns/${campaignId}/bulk-deals`);
+    navigate(`/bulk-deal/:campaignId`);
   };
 
   const handleCustomDeals = () => {
     console.log("Navigate to Custom Deals with:", selectedInfluencers);
-    // navigate(`/brand/campaigns/${campaignId}/custom-deals`);
+    navigate(`/custom-deal/:campaignId`);
   };
 
   const handleBrowseAll = () => {
@@ -341,23 +344,31 @@ const InfluencerDiscoveryPage: React.FC = () => {
         <SelectedSection>
           <SelectedHeader>
             <SelectedTitle>
-              ✅ {selectedInfluencers.length} Influencer
-              {selectedInfluencers.length > 1 ? "s" : ""} Selected
+              <div style={{ color: sharedTheme.colorVariants.primary.darker }}>
+                <CheckCheck />
+              </div>
+              <div>
+                {selectedInfluencers.length} Influencer
+                {selectedInfluencers.length > 1 ? "s" : ""} Selected
+              </div>
             </SelectedTitle>
             <SelectedMetrics>
-              <span>💰 Est. Cost: ₹{totalEstimatedCost.toLocaleString()}</span>
-              <span>📊 Est. Reach: {totalEstimatedReach.toLocaleString()}</span>
+              <span>
+                <HandCoins /> Est. Cost: ₹{totalEstimatedCost.toLocaleString()}
+              </span>
+              <span>
+                <ChartNetwork /> Est. Reach:{" "}
+                {totalEstimatedReach.toLocaleString()}
+              </span>
             </SelectedMetrics>
           </SelectedHeader>
 
           <SelectedActions>
             <ActionButton variant="secondary" onClick={handleBulkDeals}>
-              Bulk Deals
-              <span>(Same Terms)</span>
+              Send Bulk Deals
             </ActionButton>
             <ActionButton primary onClick={handleCustomDeals}>
-              Custom Deals
-              <span>(Individual)</span>
+              Send Custom Deals
             </ActionButton>
           </SelectedActions>
         </SelectedSection>
@@ -638,15 +649,21 @@ const SelectedHeader = styled.div`
 `;
 
 const SelectedTitle = styled.h3`
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: ${sharedTheme.typography.fontSizes.lg};
   font-weight: ${sharedTheme.typography.fontWeights.semibold};
   color: ${sharedTheme.colorVariants.secondary.dark};
   margin: 0;
+  gap: 0.5rem;
 `;
 
 const SelectedMetrics = styled.div`
   display: flex;
   gap: 1rem;
+  justify-content: center;
+  align-items: center;
   font-size: ${sharedTheme.typography.fontSizes.sm};
   color: ${sharedTheme.colorVariants.secondary.dark};
 

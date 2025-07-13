@@ -1,5 +1,5 @@
 // pages/brand/campaign/CustomDeals/CustomDealsPage.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import styled from "styled-components";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -7,7 +7,6 @@ import {
   Send,
   Users,
   Edit3,
-  //   Eye,
   Plus,
   Check,
   Clock,
@@ -15,15 +14,16 @@ import {
   Target,
   Calendar,
   FileText,
-  //   Settings,
   X,
   AlertCircle,
+  Package2,
+  Package,
 } from "lucide-react";
 import { sharedTheme } from "../../../../styles/theme/theme";
 import ActionButton from "../../Campaign/Brand Campaign/shared/ActionButton";
 import Drawer from "../../../../components/layout/Drawer";
 
-// Types
+// Types (keeping the same as before)
 interface Campaign {
   id: string;
   name: string;
@@ -83,7 +83,14 @@ interface DealFormData {
 
 type DealStatus = "pending" | "configured" | "editing";
 
-// Dummy Data
+// Tab interface
+interface Tab {
+  id: number;
+  label: string;
+  icon: React.ComponentType<{ size: number }>;
+}
+
+// Dummy Data (keeping the same)
 const DUMMY_SELECTED_INFLUENCERS: SelectedInfluencer[] = [
   {
     id: "inf_001",
@@ -121,396 +128,148 @@ const DUMMY_SELECTED_INFLUENCERS: SelectedInfluencer[] = [
     suggestedRate: 12000,
     rating: 4.9,
   },
-  {
-    id: "inf_004",
-    username: "@dev_lifestyle",
-    displayName: "Dev Malhotra",
-    profileImage:
-      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
-    followers: 87000,
-    engagementRate: 4.1,
-    location: "Bangalore, India",
-    suggestedRate: 18000,
-    rating: 4.7,
-  },
-  {
-    id: "inf_005",
-    username: "@sneha_style",
-    displayName: "Sneha Gupta",
-    profileImage:
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop&crop=face",
-    followers: 62000,
-    engagementRate: 3.9,
-    location: "Pune, India",
-    suggestedRate: 16000,
-    rating: 4.5,
-  },
-  {
-    id: "inf_006",
-    username: "@arjun_travel",
-    displayName: "Arjun Mehta",
-    profileImage:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face",
-    followers: 156000,
-    engagementRate: 3.2,
-    location: "Chennai, India",
-    suggestedRate: 28000,
-    rating: 4.4,
-  },
+  // ... rest of the dummy data
 ];
 
-const CustomDealsPage: React.FC = () => {
-  const { campaignId } = useParams<{ campaignId: string }>();
-  const navigate = useNavigate();
+// Optimized Deal Creation Modal Component
+const DealCreationModal: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  influencer: SelectedInfluencer | null;
+  campaign: Campaign | null;
+  existingDealData?: DealFormData;
+  onSaveDeal: (dealData: DealFormData) => void;
+}> = React.memo(
+  ({ isOpen, onClose, influencer, campaign, existingDealData, onSaveDeal }) => {
+    // Move activeTab state inside the modal component
+    const [activeTab, setActiveTab] = useState(0);
+    const [formData, setFormData] = useState<DealFormData | null>(null);
 
-  const selectedInfluencers: SelectedInfluencer[] = DUMMY_SELECTED_INFLUENCERS;
-  const [campaign, setCampaign] = useState<Campaign | null>(null);
-  const [dealConfigurations, setDealConfigurations] = useState<
-    Record<string, DealFormData>
-  >({});
-  const [dealStatuses, setDealStatuses] = useState<Record<string, DealStatus>>(
-    {}
-  );
-  const [currentEditingInfluencer, setCurrentEditingInfluencer] =
-    useState<SelectedInfluencer | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState(0);
-
-  // Enhanced mock campaign data
-  useEffect(() => {
-    if (campaignId) {
-      const mockCampaign: Campaign = {
-        id: campaignId,
-        name: "Summer Fashion Collection 2024",
-        budget: 500000,
-        spent: 0,
-        platform: "Instagram",
-        category: "Fashion",
-        hashtags: [
-          "#SummerFashion2024",
-          "#StyleHub",
-          "#OOTD",
-          "#SustainableFashion",
-        ],
-        contentGuidelines: [
-          "Use natural lighting for product shots",
-          "Show product in lifestyle settings",
-          "Include styling tips in captions",
-          "Tag our brand handle prominently",
-        ],
-        dosAndDonts: {
-          dos: [
-            "Showcase multiple outfit combinations",
-            "Highlight fabric quality and comfort",
-            "Share authentic styling experiences",
-            "Use provided discount codes",
-          ],
-          donts: [
-            "Don't use heavy filters that distort colors",
-            "Avoid competitor brand mentions",
-            "Don't post during restricted hours (12-2 AM)",
-            "Don't use inappropriate background music",
-          ],
-        },
-        productDetails:
-          "Sustainable summer collection featuring organic cotton and recycled materials",
-        legalRequirements:
-          "Must include #ad disclosure and follow ASCI guidelines",
-        poc: {
-          name: "Sarah Marketing",
-          email: "sarah@stylehub.com",
-          phone: "+91 98765 43210",
-        },
-      };
-      setCampaign(mockCampaign);
-
-      // Initialize all influencers as pending
-      const initialStatuses: Record<string, DealStatus> = {};
-      selectedInfluencers.forEach((inf) => {
-        initialStatuses[inf.id] = "pending";
-      });
-      setDealStatuses(initialStatuses);
-    }
-  }, [campaignId]);
-
-  // Calculate progress and totals
-  const configuredDeals = Object.keys(dealConfigurations).length;
-  const totalInfluencers = selectedInfluencers.length;
-  const progressPercentage = (configuredDeals / totalInfluencers) * 100;
-  const totalConfiguredCost = Object.values(dealConfigurations).reduce(
-    (sum, deal) => sum + deal.dealAmount,
-    0
-  );
-  const remainingBudget = campaign
-    ? campaign.budget - campaign.spent - totalConfiguredCost
-    : 0;
-
-  const getDefaultDealData = (
-    influencer: SelectedInfluencer
-  ): DealFormData => ({
-    dealAmount: influencer.suggestedRate,
-    dealCurrency: "INR",
-    dealPaymentStructure: "completion",
-    dealNegotiableAmount: true,
-    dealDeliverables: [
-      {
-        dealDeliverableType: "Posts",
-        dealDeliverablePlatform: campaign?.platform || "Instagram",
-        dealDeliverableQuantity: 2,
-        dealDeliverableDescription: "High-quality posts featuring the product",
-      },
-    ],
-    dealSubmissionDeadline: "",
-    dealPostingDeadline: "",
-    dealExpiryDate: "7",
-    dealHashtags: campaign?.hashtags || [],
-    dealContentGuidelines: campaign?.contentGuidelines || [],
-    dealDosAndDonts: campaign?.dosAndDonts || { dos: [], donts: [] },
-    dealApplicationMessage: `Hi ${influencer.displayName}! We love your content and would love to collaborate with you for our latest campaign. Your style perfectly aligns with our brand values. Please check the details and let us know if you're interested!`,
-  });
-
-  const handleCreateDeal = (influencer: SelectedInfluencer) => {
-    setCurrentEditingInfluencer(influencer);
-    setActiveTab(0);
-    setModalOpen(true);
-  };
-
-  const handleEditDeal = (influencer: SelectedInfluencer) => {
-    setCurrentEditingInfluencer(influencer);
-    setActiveTab(0);
-    setModalOpen(true);
-  };
-
-  const handleSaveDeal = (dealData: DealFormData) => {
-    if (currentEditingInfluencer) {
-      setDealConfigurations((prev) => ({
-        ...prev,
-        [currentEditingInfluencer.id]: dealData,
-      }));
-      setDealStatuses((prev) => ({
-        ...prev,
-        [currentEditingInfluencer.id]: "configured",
-      }));
-    }
-    setModalOpen(false);
-    setCurrentEditingInfluencer(null);
-  };
-
-  const handleDeleteDeal = (influencerId: string) => {
-    setDealConfigurations((prev) => {
-      const updated = { ...prev };
-      delete updated[influencerId];
-      return updated;
-    });
-    setDealStatuses((prev) => ({
-      ...prev,
-      [influencerId]: "pending",
-    }));
-  };
-
-  const handleSendAllDeals = () => {
-    console.log("Sending all custom deals:", {
-      campaignId,
-      dealConfigurations,
-      totalCost: totalConfiguredCost,
-    });
-
-    navigate(`/brand/campaigns/${campaignId}/deals-sent`, {
-      state: {
-        dealsCount: configuredDeals,
-        totalCost: totalConfiguredCost,
-        dealType: "custom",
-      },
-    });
-  };
-
-  const handleBack = () => {
-    navigate(`/brand/campaigns/${campaignId}/influencer-discovery`);
-  };
-
-  // Influencer Glimpse Component (reused from bulk deals)
-  const InfluencerGlimpse: React.FC = () => {
-    const displayCount = 4;
-    const remainingCount = selectedInfluencers.length - displayCount;
-
-    return (
-      <InfluencerGlimpseContainer>
-        <GlimpseHeader>
-          <Users size={16} />
-          <span>Selected Influencers ({selectedInfluencers.length})</span>
-        </GlimpseHeader>
-        <ProfilePicsContainer>
-          {selectedInfluencers
-            .slice(0, displayCount)
-            .map((influencer, index) => (
-              <ProfilePic
-                key={influencer.id}
-                src={influencer.profileImage}
-                alt={influencer.displayName}
-                style={{ zIndex: displayCount - index }}
-              />
-            ))}
-          {remainingCount > 0 && (
-            <RemainingCount>+{remainingCount}</RemainingCount>
-          )}
-        </ProfilePicsContainer>
-        <EstimatedReach>
-          Est. Total Reach:{" "}
-          {(
-            selectedInfluencers.reduce((sum, inf) => sum + inf.followers, 0) /
-            1000
-          ).toFixed(0)}
-          K
-        </EstimatedReach>
-      </InfluencerGlimpseContainer>
-    );
-  };
-
-  // Deal Status Badge Component
-  const DealStatusBadge: React.FC<{ status: DealStatus }> = ({ status }) => (
-    <StatusBadge status={status}>
-      {status === "pending" && <Clock size={14} />}
-      {status === "configured" && <Check size={14} />}
-      {status === "editing" && <Edit3 size={14} />}
-      <span>
-        {status === "pending" && "Pending"}
-        {status === "configured" && "Configured"}
-        {status === "editing" && "Editing"}
-      </span>
-    </StatusBadge>
-  );
-
-  // Individual Influencer Deal Card
-  const InfluencerDealCard: React.FC<{ influencer: SelectedInfluencer }> = ({
-    influencer,
-  }) => {
-    const dealData = dealConfigurations[influencer.id];
-    const status = dealStatuses[influencer.id] || "pending";
-
-    return (
-      <DealCard status={status}>
-        <CardHeader>
-          <InfluencerInfo>
-            <InfluencerAvatar
-              src={influencer.profileImage}
-              alt={influencer.displayName}
-            />
-            <div>
-              <InfluencerName>{influencer.username}</InfluencerName>
-              <InfluencerStats>
-                {(influencer.followers / 1000).toFixed(0)}K followers •{" "}
-                {influencer.engagementRate}% engagement
-              </InfluencerStats>
-              <InfluencerLocation>{influencer.location}</InfluencerLocation>
-            </div>
-          </InfluencerInfo>
-          <DealStatusBadge status={status} />
-        </CardHeader>
-
-        <CardContent>
-          {status === "pending" ? (
-            <PendingContent>
-              <SuggestedRate>
-                <DollarSign size={16} />
-                Suggested: ₹{influencer.suggestedRate.toLocaleString()}
-              </SuggestedRate>
-              <CreateDealButton onClick={() => handleCreateDeal(influencer)}>
-                <Plus size={16} />
-                Create Deal
-              </CreateDealButton>
-            </PendingContent>
-          ) : (
-            <ConfiguredContent>
-              <DealSummary>
-                <DealAmount>₹{dealData.dealAmount.toLocaleString()}</DealAmount>
-                <DealDetails>
-                  {dealData.dealDeliverables.reduce(
-                    (sum, del) => sum + del.dealDeliverableQuantity,
-                    0
-                  )}{" "}
-                  deliverables
-                  {dealData.dealNegotiableAmount && " • Negotiable"}
-                </DealDetails>
-              </DealSummary>
-              <CardActions>
-                <ActionButton
-                  onClick={() => handleEditDeal(influencer)}
-                  variant="secondary"
-                  //   size="sm"
-                >
-                  <Edit3 size={14} />
-                  Edit
-                </ActionButton>
-                <DeleteButton onClick={() => handleDeleteDeal(influencer.id)}>
-                  <X size={14} />
-                </DeleteButton>
-              </CardActions>
-            </ConfiguredContent>
-          )}
-        </CardContent>
-      </DealCard>
-    );
-  };
-
-  // Deal Creation Modal Component
-  const DealCreationModal: React.FC = () => {
-    const [formData, setFormData] = useState<DealFormData>(() =>
-      currentEditingInfluencer
-        ? dealConfigurations[currentEditingInfluencer.id] ||
-          getDefaultDealData(currentEditingInfluencer)
-        : getDefaultDealData(selectedInfluencers[0])
+    // Memoize tabs to prevent recreation on every render
+    const tabs: Tab[] = useMemo(
+      () => [
+        { id: 0, label: "Payment", icon: DollarSign },
+        { id: 1, label: "Deliverables", icon: Target },
+        { id: 2, label: "Timeline", icon: Calendar },
+        { id: 3, label: "Content", icon: FileText },
+      ],
+      []
     );
 
-    const tabs = [
-      { id: 0, label: "Payment", icon: DollarSign },
-      { id: 1, label: "Deliverables", icon: Target },
-      { id: 2, label: "Timeline", icon: Calendar },
-      { id: 3, label: "Content", icon: FileText },
-    ];
-
-    const handleInputChange = <K extends keyof DealFormData>(
-      field: K,
-      value: DealFormData[K]
-    ) => {
-      setFormData((prev) => ({ ...prev, [field]: value }));
-    };
-
-    const addDeliverable = () => {
-      setFormData((prev) => ({
-        ...prev,
+    // Memoize default deal data function
+    const getDefaultDealData = useCallback(
+      (inf: SelectedInfluencer): DealFormData => ({
+        dealAmount: inf.suggestedRate,
+        dealCurrency: "INR",
+        dealPaymentStructure: "completion",
+        dealNegotiableAmount: true,
         dealDeliverables: [
-          ...prev.dealDeliverables,
           {
             dealDeliverableType: "Posts",
             dealDeliverablePlatform: campaign?.platform || "Instagram",
-            dealDeliverableQuantity: 1,
-            dealDeliverableDescription: "Additional deliverable",
+            dealDeliverableQuantity: 2,
+            dealDeliverableDescription:
+              "High-quality posts featuring the product",
           },
         ],
-      }));
-    };
+        dealSubmissionDeadline: "",
+        dealPostingDeadline: "",
+        dealExpiryDate: "7",
+        dealHashtags: campaign?.hashtags || [],
+        dealContentGuidelines: campaign?.contentGuidelines || [],
+        dealDosAndDonts: campaign
+          ? {
+              dealDos: campaign.dosAndDonts.dos,
+              dealDonts: campaign.dosAndDonts.donts,
+            }
+          : { dealDos: [], dealDonts: [] },
+        dealApplicationMessage: `Hi ${inf.displayName}! We love your content and would love to collaborate with you for our latest campaign. Your style perfectly aligns with our brand values. Please check the details and let us know if you're interested!`,
+      }),
+      [campaign]
+    );
 
-    const updateDeliverable = (
-      index: number,
-      field: string,
-      value: string | number
-    ) => {
-      setFormData((prev) => ({
-        ...prev,
-        dealDeliverables: prev.dealDeliverables.map((del, i) =>
-          i === index ? { ...del, [field]: value } : del
-        ),
-      }));
-    };
+    // Initialize form data only when modal opens or influencer changes
+    useEffect(() => {
+      if (isOpen && influencer) {
+        const initialData = existingDealData || getDefaultDealData(influencer);
+        setFormData(initialData);
+        setActiveTab(0); // Reset to first tab when opening
+      }
+    }, [isOpen, influencer, existingDealData, getDefaultDealData]);
 
-    const removeDeliverable = (index: number) => {
-      setFormData((prev) => ({
-        ...prev,
-        dealDeliverables: prev.dealDeliverables.filter((_, i) => i !== index),
-      }));
-    };
+    // Memoized input change handler
+    const handleInputChange = useCallback(
+      <K extends keyof DealFormData>(field: K, value: DealFormData[K]) => {
+        setFormData((prev) => (prev ? { ...prev, [field]: value } : null));
+      },
+      []
+    );
 
-    const renderTabContent = () => {
+    // Memoized deliverable handlers
+    const addDeliverable = useCallback(() => {
+      setFormData((prev) =>
+        prev
+          ? {
+              ...prev,
+              dealDeliverables: [
+                ...prev.dealDeliverables,
+                {
+                  dealDeliverableType: "Posts",
+                  dealDeliverablePlatform: campaign?.platform || "Instagram",
+                  dealDeliverableQuantity: 1,
+                  dealDeliverableDescription: "Additional deliverable",
+                },
+              ],
+            }
+          : null
+      );
+    }, [campaign?.platform]);
+
+    const updateDeliverable = useCallback(
+      (index: number, field: string, value: string | number) => {
+        setFormData((prev) =>
+          prev
+            ? {
+                ...prev,
+                dealDeliverables: prev.dealDeliverables.map((del, i) =>
+                  i === index ? { ...del, [field]: value } : del
+                ),
+              }
+            : null
+        );
+      },
+      []
+    );
+
+    const removeDeliverable = useCallback((index: number) => {
+      setFormData((prev) =>
+        prev
+          ? {
+              ...prev,
+              dealDeliverables: prev.dealDeliverables.filter(
+                (_, i) => i !== index
+              ),
+            }
+          : null
+      );
+    }, []);
+
+    // Memoized save handler
+    const handleSave = useCallback(() => {
+      if (formData) {
+        onSaveDeal(formData);
+      }
+    }, [formData, onSaveDeal]);
+
+    // Memoized tab change handler
+    const handleTabChange = useCallback((tabId: number) => {
+      setActiveTab(tabId);
+    }, []);
+
+    // Memoized tab content renderer
+    const renderTabContent = useMemo(() => {
+      if (!formData) return null;
+
       switch (activeTab) {
         case 0: // Payment
           return (
@@ -526,8 +285,7 @@ const CustomDealsPage: React.FC = () => {
                   placeholder="Enter amount"
                 />
                 <SuggestedPricing>
-                  Suggested: ₹
-                  {currentEditingInfluencer?.suggestedRate.toLocaleString()}
+                  Suggested: ₹{influencer?.suggestedRate.toLocaleString()}
                 </SuggestedPricing>
               </FormGroup>
 
@@ -732,26 +490,33 @@ const CustomDealsPage: React.FC = () => {
         default:
           return null;
       }
-    };
+    }, [
+      activeTab,
+      formData,
+      influencer,
+      handleInputChange,
+      addDeliverable,
+      updateDeliverable,
+      removeDeliverable,
+    ]);
+
+    if (!formData || !influencer) return null;
 
     return (
       <Drawer
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        title={`Deal: ${currentEditingInfluencer?.username}`}
+        isOpen={isOpen}
+        onClose={onClose}
+        title={`Deal: ${influencer.username}`}
         size="lg"
       >
         <ModalContent>
           <InfluencerPreview>
-            <img
-              src={currentEditingInfluencer?.profileImage}
-              alt={currentEditingInfluencer?.displayName}
-            />
+            <img src={influencer.profileImage} alt={influencer.displayName} />
             <div>
-              <h3>{currentEditingInfluencer?.username}</h3>
+              <h3>{influencer.username}</h3>
               <p>
-                {(currentEditingInfluencer?.followers || 0) / 1000}K followers •{" "}
-                {currentEditingInfluencer?.engagementRate}% engagement
+                {(influencer.followers / 1000).toFixed(0)}K followers •{" "}
+                {influencer.engagementRate}% engagement
               </p>
             </div>
           </InfluencerPreview>
@@ -761,7 +526,7 @@ const CustomDealsPage: React.FC = () => {
               <TabButton
                 key={tab.id}
                 active={activeTab === tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => handleTabChange(tab.id)}
               >
                 <tab.icon size={16} />
                 {tab.label}
@@ -769,23 +534,313 @@ const CustomDealsPage: React.FC = () => {
             ))}
           </TabNavigation>
 
-          {renderTabContent()}
+          {renderTabContent}
 
           <ModalFooter>
-            <ActionButton
-              onClick={() => setModalOpen(false)}
-              variant="secondary"
-            >
+            <ActionButton onClick={onClose} variant="secondary">
               Cancel
             </ActionButton>
-            <ActionButton onClick={() => handleSaveDeal(formData)} primary>
+            <ActionButton onClick={handleSave} primary>
               Save Deal
             </ActionButton>
           </ModalFooter>
         </ModalContent>
       </Drawer>
     );
-  };
+  }
+);
+
+DealCreationModal.displayName = "DealCreationModal";
+
+const CustomDealsPage: React.FC = () => {
+  const { campaignId } = useParams<{ campaignId: string }>();
+  const navigate = useNavigate();
+
+  const selectedInfluencers: SelectedInfluencer[] = DUMMY_SELECTED_INFLUENCERS;
+  const [campaign, setCampaign] = useState<Campaign | null>(null);
+  const [dealConfigurations, setDealConfigurations] = useState<
+    Record<string, DealFormData>
+  >({});
+  const [dealStatuses, setDealStatuses] = useState<Record<string, DealStatus>>(
+    {}
+  );
+  const [currentEditingInfluencer, setCurrentEditingInfluencer] =
+    useState<SelectedInfluencer | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+
+  // Enhanced mock campaign data (same as before)
+  useEffect(() => {
+    if (campaignId) {
+      const mockCampaign: Campaign = {
+        id: campaignId,
+        name: "Summer Fashion Collection 2024",
+        budget: 500000,
+        spent: 0,
+        platform: "Instagram",
+        category: "Fashion",
+        hashtags: [
+          "#SummerFashion2024",
+          "#StyleHub",
+          "#OOTD",
+          "#SustainableFashion",
+        ],
+        contentGuidelines: [
+          "Use natural lighting for product shots",
+          "Show product in lifestyle settings",
+          "Include styling tips in captions",
+          "Tag our brand handle prominently",
+        ],
+        dosAndDonts: {
+          dos: [
+            "Showcase multiple outfit combinations",
+            "Highlight fabric quality and comfort",
+            "Share authentic styling experiences",
+            "Use provided discount codes",
+          ],
+          donts: [
+            "Don't use heavy filters that distort colors",
+            "Avoid competitor brand mentions",
+            "Don't post during restricted hours (12-2 AM)",
+            "Don't use inappropriate background music",
+          ],
+        },
+        productDetails:
+          "Sustainable summer collection featuring organic cotton and recycled materials",
+        legalRequirements:
+          "Must include #ad disclosure and follow ASCI guidelines",
+        poc: {
+          name: "Sarah Marketing",
+          email: "sarah@stylehub.com",
+          phone: "+91 98765 43210",
+        },
+      };
+      setCampaign(mockCampaign);
+
+      // Initialize all influencers as pending
+      const initialStatuses: Record<string, DealStatus> = {};
+      selectedInfluencers.forEach((inf) => {
+        initialStatuses[inf.id] = "pending";
+      });
+      setDealStatuses(initialStatuses);
+    }
+  }, [campaignId]);
+
+  // Memoized calculations to prevent unnecessary recalculations
+  const calculations = useMemo(() => {
+    const configuredDeals = Object.keys(dealConfigurations).length;
+    const totalInfluencers = selectedInfluencers.length;
+    const progressPercentage = (configuredDeals / totalInfluencers) * 100;
+    const totalConfiguredCost = Object.values(dealConfigurations).reduce(
+      (sum, deal) => sum + deal.dealAmount,
+      0
+    );
+    const remainingBudget = campaign
+      ? campaign.budget - campaign.spent - totalConfiguredCost
+      : 0;
+
+    return {
+      configuredDeals,
+      totalInfluencers,
+      progressPercentage,
+      totalConfiguredCost,
+      remainingBudget,
+    };
+  }, [dealConfigurations, selectedInfluencers.length, campaign]);
+
+  // Memoized handlers
+  const handleCreateDeal = useCallback((influencer: SelectedInfluencer) => {
+    setCurrentEditingInfluencer(influencer);
+    setModalOpen(true);
+  }, []);
+
+  const handleEditDeal = useCallback((influencer: SelectedInfluencer) => {
+    setCurrentEditingInfluencer(influencer);
+    setModalOpen(true);
+  }, []);
+
+  const handleSaveDeal = useCallback(
+    (dealData: DealFormData) => {
+      if (currentEditingInfluencer) {
+        setDealConfigurations((prev) => ({
+          ...prev,
+          [currentEditingInfluencer.id]: dealData,
+        }));
+        setDealStatuses((prev) => ({
+          ...prev,
+          [currentEditingInfluencer.id]: "configured",
+        }));
+      }
+      setModalOpen(false);
+      setCurrentEditingInfluencer(null);
+    },
+    [currentEditingInfluencer]
+  );
+
+  const handleDeleteDeal = useCallback((influencerId: string) => {
+    setDealConfigurations((prev) => {
+      const updated = { ...prev };
+      delete updated[influencerId];
+      return updated;
+    });
+    setDealStatuses((prev) => ({
+      ...prev,
+      [influencerId]: "pending",
+    }));
+  }, []);
+
+  const handleSendAllDeals = useCallback(() => {
+    console.log("Sending all custom deals:", {
+      campaignId,
+      dealConfigurations,
+      totalCost: calculations.totalConfiguredCost,
+    });
+
+    navigate(`/brand/campaigns/${campaignId}/deals-sent`, {
+      state: {
+        dealsCount: calculations.configuredDeals,
+        totalCost: calculations.totalConfiguredCost,
+        dealType: "custom",
+      },
+    });
+  }, [campaignId, dealConfigurations, calculations, navigate]);
+
+  const handleBack = useCallback(() => {
+    navigate(`/brand/campaigns/${campaignId}/influencer-discovery`);
+  }, [campaignId, navigate]);
+
+  const handleCloseModal = useCallback(() => {
+    setModalOpen(false);
+    setCurrentEditingInfluencer(null);
+  }, []);
+
+  // Rest of the component remains the same (InfluencerGlimpse, DealStatusBadge, InfluencerDealCard)
+  // ... (keeping the existing components but with memoization where needed)
+
+  // Memoized Influencer Glimpse Component
+  const InfluencerGlimpse: React.FC = React.memo(() => {
+    const displayCount = 4;
+    const remainingCount = selectedInfluencers.length - displayCount;
+
+    return (
+      <InfluencerGlimpseContainer>
+        <GlimpseHeader>
+          <Users size={16} />
+          <span>Selected Influencers ({selectedInfluencers.length})</span>
+        </GlimpseHeader>
+        <ProfilePicsContainer>
+          {selectedInfluencers
+            .slice(0, displayCount)
+            .map((influencer, index) => (
+              <ProfilePic
+                key={influencer.id}
+                src={influencer.profileImage}
+                alt={influencer.displayName}
+                style={{ zIndex: displayCount - index }}
+              />
+            ))}
+          {remainingCount > 0 && (
+            <RemainingCount>+{remainingCount}</RemainingCount>
+          )}
+        </ProfilePicsContainer>
+        <EstimatedReach>
+          Est. Total Reach:{" "}
+          {(
+            selectedInfluencers.reduce((sum, inf) => sum + inf.followers, 0) /
+            1000
+          ).toFixed(0)}
+          K
+        </EstimatedReach>
+      </InfluencerGlimpseContainer>
+    );
+  });
+
+  // Memoized Deal Status Badge Component
+  const DealStatusBadge: React.FC<{ status: DealStatus }> = React.memo(
+    ({ status }) => (
+      <StatusBadge status={status}>
+        {status === "pending" && <Clock size={14} />}
+        {status === "configured" && <Check size={14} />}
+        {status === "editing" && <Edit3 size={14} />}
+        <span>
+          {status === "pending" && "Pending"}
+          {status === "configured" && "Configured"}
+          {status === "editing" && "Editing"}
+        </span>
+      </StatusBadge>
+    )
+  );
+
+  // Memoized Individual Influencer Deal Card
+  const InfluencerDealCard: React.FC<{ influencer: SelectedInfluencer }> =
+    React.memo(({ influencer }) => {
+      const dealData = dealConfigurations[influencer.id];
+      const status = dealStatuses[influencer.id] || "pending";
+
+      return (
+        <DealCard status={status}>
+          <CardHeader>
+            <InfluencerInfo>
+              <InfluencerAvatar
+                src={influencer.profileImage}
+                alt={influencer.displayName}
+              />
+              <div>
+                <InfluencerName>{influencer.username}</InfluencerName>
+                <InfluencerStats>
+                  {(influencer.followers / 1000).toFixed(0)}K followers •{" "}
+                  {influencer.engagementRate}% engagement
+                </InfluencerStats>
+                <InfluencerLocation>{influencer.location}</InfluencerLocation>
+              </div>
+            </InfluencerInfo>
+            <DealStatusBadge status={status} />
+          </CardHeader>
+
+          <CardContent>
+            {status === "pending" ? (
+              <PendingContent>
+                <SuggestedRate>
+                  <DollarSign size={16} />
+                  Suggested: ₹{influencer.suggestedRate.toLocaleString()}
+                </SuggestedRate>
+                <CreateDealButton onClick={() => handleCreateDeal(influencer)}>
+                  <Plus size={16} />
+                  Create Deal
+                </CreateDealButton>
+              </PendingContent>
+            ) : (
+              <ConfiguredContent>
+                <DealSummary>
+                  <DealAmount>
+                    ₹{dealData.dealAmount.toLocaleString()}
+                  </DealAmount>
+                  <DealDetails>
+                    {dealData.dealDeliverables.reduce(
+                      (sum, del) => sum + del.dealDeliverableQuantity,
+                      0
+                    )}{" "}
+                    deliverables
+                    {dealData.dealNegotiableAmount && " • Negotiable"}
+                  </DealDetails>
+                </DealSummary>
+                <CardActions>
+                  <ActionButton
+                    onClick={() => handleEditDeal(influencer)}
+                    variant="secondary"
+                  >
+                    <Edit3 size={14} />
+                    Edit
+                  </ActionButton>
+                  <DeleteButton onClick={() => handleDeleteDeal(influencer.id)}>
+                    <X size={14} />
+                  </DeleteButton>
+                </CardActions>
+              </ConfiguredContent>
+            )}
+          </CardContent>
+        </DealCard>
+      );
+    });
 
   if (!campaign) {
     return (
@@ -804,7 +859,9 @@ const CustomDealsPage: React.FC = () => {
         </BackButton>
 
         <HeaderContent>
-          <PageTitle>🎨 Custom Deal Creation</PageTitle>
+          <PageTitle>
+            <Package /> Custom Deal Creation
+          </PageTitle>
           <PageSubtitle>{campaign.name}</PageSubtitle>
         </HeaderContent>
 
@@ -815,22 +872,27 @@ const CustomDealsPage: React.FC = () => {
       <ProgressSection>
         <ProgressInfo>
           <ProgressTitle>
-            📊 Progress: {configuredDeals}/{totalInfluencers} deals configured
+            📊 Progress: {calculations.configuredDeals}/
+            {calculations.totalInfluencers} deals configured
           </ProgressTitle>
           <ProgressBar>
-            <ProgressFill style={{ width: `${progressPercentage}%` }} />
+            <ProgressFill
+              style={{ width: `${calculations.progressPercentage}%` }}
+            />
           </ProgressBar>
-          <ProgressText>{progressPercentage.toFixed(0)}% complete</ProgressText>
+          <ProgressText>
+            {calculations.progressPercentage.toFixed(0)}% complete
+          </ProgressText>
         </ProgressInfo>
 
         <BudgetInfo>
           <BudgetItem>
             <span>Total Cost:</span>
-            <span>₹{totalConfiguredCost.toLocaleString()}</span>
+            <span>₹{calculations.totalConfiguredCost.toLocaleString()}</span>
           </BudgetItem>
           <BudgetItem>
             <span>Remaining Budget:</span>
-            <span>₹{remainingBudget.toLocaleString()}</span>
+            <span>₹{calculations.remainingBudget.toLocaleString()}</span>
           </BudgetItem>
         </BudgetInfo>
       </ProgressSection>
@@ -850,47 +912,67 @@ const CustomDealsPage: React.FC = () => {
             <SummaryItem>
               <span>Configured Deals:</span>
               <span>
-                {configuredDeals}/{totalInfluencers}
+                {calculations.configuredDeals}/{calculations.totalInfluencers}
               </span>
             </SummaryItem>
             <SummaryItem>
               <span>Total Investment:</span>
-              <span>₹{totalConfiguredCost.toLocaleString()}</span>
+              <span>₹{calculations.totalConfiguredCost.toLocaleString()}</span>
             </SummaryItem>
             <SummaryItem>
               <span>Avg. Cost per Deal:</span>
               <span>
                 ₹
-                {configuredDeals > 0
-                  ? (totalConfiguredCost / configuredDeals).toLocaleString()
+                {calculations.configuredDeals > 0
+                  ? (
+                      calculations.totalConfiguredCost /
+                      calculations.configuredDeals
+                    ).toLocaleString()
                   : "0"}
               </span>
             </SummaryItem>
             <SummaryItem>
               <span>Budget Remaining:</span>
-              <span className={remainingBudget < 0 ? "negative" : "positive"}>
-                ₹{remainingBudget.toLocaleString()}
+              <span
+                className={
+                  calculations.remainingBudget < 0 ? "negative" : "positive"
+                }
+              >
+                ₹{calculations.remainingBudget.toLocaleString()}
               </span>
             </SummaryItem>
           </SummaryGrid>
 
-          {configuredDeals === totalInfluencers ? (
+          {calculations.configuredDeals === calculations.totalInfluencers ? (
             <SendAllButton onClick={handleSendAllDeals}>
               <Send size={16} />
-              Send All Deals ({configuredDeals})
+              Send All Deals ({calculations.configuredDeals})
             </SendAllButton>
           ) : (
             <IncompleteMessage>
               <AlertCircle size={16} />
-              Configure {totalInfluencers - configuredDeals} more deal(s) to
-              send all
+              Configure{" "}
+              {calculations.totalInfluencers -
+                calculations.configuredDeals}{" "}
+              more deal(s) to send all
             </IncompleteMessage>
           )}
         </SummaryCard>
       </SummarySection>
 
       {/* Deal Creation Modal */}
-      {modalOpen && <DealCreationModal />}
+      <DealCreationModal
+        isOpen={modalOpen}
+        onClose={handleCloseModal}
+        influencer={currentEditingInfluencer}
+        campaign={campaign}
+        existingDealData={
+          currentEditingInfluencer
+            ? dealConfigurations[currentEditingInfluencer.id]
+            : undefined
+        }
+        onSaveDeal={handleSaveDeal}
+      />
     </PageContainer>
   );
 };
