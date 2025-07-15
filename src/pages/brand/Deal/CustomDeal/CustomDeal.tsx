@@ -11,19 +11,15 @@ import {
   Check,
   Clock,
   DollarSign,
-  Target,
-  Calendar,
-  FileText,
   X,
   AlertCircle,
-  Package2,
   Package,
 } from "lucide-react";
 import { sharedTheme } from "../../../../styles/theme/theme";
 import ActionButton from "../../Campaign/Brand Campaign/shared/ActionButton";
-import Drawer from "../../../../components/layout/Drawer";
+import DealCreationModal from "./CustomDealModal";
 
-// Types (keeping the same as before)
+// Types
 interface Campaign {
   id: string;
   name: string;
@@ -58,20 +54,48 @@ interface SelectedInfluencer {
   rating: number;
 }
 
+type DealDeliverableType =
+  | "Posts"
+  | "Stories"
+  | "Reels"
+  | "IGTV"
+  | "Live Streams"
+  | "Videos"
+  | "Shorts"
+  | "Premieres"
+  | "Articles"
+  | "Live Events"
+  | "Documents"
+  | "Tweets"
+  | "Threads"
+  | "Spaces"
+  | "Events"
+  | "Snaps"
+  | "Spotlight"
+  | "Lenses";
+
+type DealDeliverablePlatform =
+  | "Instagram"
+  | "YouTube"
+  | "Twitter"
+  | "LinkedIn"
+  | "Snapchat"
+  | "Facebook";
+
 interface DealFormData {
   dealAmount: number;
-  dealCurrency: string;
+  dealCurrency: "INR" | "USD" | "EUR" | "GBP";
   dealPaymentStructure: "upfront" | "milestone" | "completion" | "custom";
   dealNegotiableAmount: boolean;
   dealDeliverables: {
-    dealDeliverableType: string;
-    dealDeliverablePlatform: string;
+    dealDeliverableType: DealDeliverableType;
+    dealDeliverablePlatform: DealDeliverablePlatform;
     dealDeliverableQuantity: number;
     dealDeliverableDescription: string;
   }[];
   dealSubmissionDeadline: string;
   dealPostingDeadline: string;
-  dealExpiryDate: string;
+  dealExpiryDate: "3" | "7" | "14" | "30";
   dealHashtags: string[];
   dealContentGuidelines: string[];
   dealDosAndDonts: {
@@ -83,14 +107,7 @@ interface DealFormData {
 
 type DealStatus = "pending" | "configured" | "editing";
 
-// Tab interface
-interface Tab {
-  id: number;
-  label: string;
-  icon: React.ComponentType<{ size: number }>;
-}
-
-// Dummy Data (keeping the same)
+// Dummy Data - Complete set
 const DUMMY_SELECTED_INFLUENCERS: SelectedInfluencer[] = [
   {
     id: "inf_001",
@@ -128,429 +145,67 @@ const DUMMY_SELECTED_INFLUENCERS: SelectedInfluencer[] = [
     suggestedRate: 12000,
     rating: 4.9,
   },
-  // ... rest of the dummy data
+  {
+    id: "inf_004",
+    username: "@dev_lifestyle",
+    displayName: "Dev Malhotra",
+    profileImage:
+      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
+    followers: 87000,
+    engagementRate: 4.1,
+    location: "Bangalore, India",
+    suggestedRate: 18000,
+    rating: 4.7,
+  },
+  {
+    id: "inf_005",
+    username: "@sneha_style",
+    displayName: "Sneha Gupta",
+    profileImage:
+      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop&crop=face",
+    followers: 62000,
+    engagementRate: 3.9,
+    location: "Pune, India",
+    suggestedRate: 16000,
+    rating: 4.5,
+  },
+  {
+    id: "inf_006",
+    username: "@arjun_travel",
+    displayName: "Arjun Mehta",
+    profileImage:
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face",
+    followers: 156000,
+    engagementRate: 3.2,
+    location: "Chennai, India",
+    suggestedRate: 28000,
+    rating: 4.4,
+  },
+  {
+    id: "inf_007",
+    username: "@kavya_beauty",
+    displayName: "Kavya Reddy",
+    profileImage:
+      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop&crop=face",
+    followers: 34000,
+    engagementRate: 4.8,
+    location: "Hyderabad, India",
+    suggestedRate: 14000,
+    rating: 4.8,
+  },
+  {
+    id: "inf_008",
+    username: "@rohan_fitness",
+    displayName: "Rohan Kumar",
+    profileImage:
+      "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=400&h=400&fit=crop&crop=face",
+    followers: 93000,
+    engagementRate: 4.3,
+    location: "Kolkata, India",
+    suggestedRate: 20000,
+    rating: 4.6,
+  },
 ];
-
-// Optimized Deal Creation Modal Component
-const DealCreationModal: React.FC<{
-  isOpen: boolean;
-  onClose: () => void;
-  influencer: SelectedInfluencer | null;
-  campaign: Campaign | null;
-  existingDealData?: DealFormData;
-  onSaveDeal: (dealData: DealFormData) => void;
-}> = React.memo(
-  ({ isOpen, onClose, influencer, campaign, existingDealData, onSaveDeal }) => {
-    // Move activeTab state inside the modal component
-    const [activeTab, setActiveTab] = useState(0);
-    const [formData, setFormData] = useState<DealFormData | null>(null);
-
-    // Memoize tabs to prevent recreation on every render
-    const tabs: Tab[] = useMemo(
-      () => [
-        { id: 0, label: "Payment", icon: DollarSign },
-        { id: 1, label: "Deliverables", icon: Target },
-        { id: 2, label: "Timeline", icon: Calendar },
-        { id: 3, label: "Content", icon: FileText },
-      ],
-      []
-    );
-
-    // Memoize default deal data function
-    const getDefaultDealData = useCallback(
-      (inf: SelectedInfluencer): DealFormData => ({
-        dealAmount: inf.suggestedRate,
-        dealCurrency: "INR",
-        dealPaymentStructure: "completion",
-        dealNegotiableAmount: true,
-        dealDeliverables: [
-          {
-            dealDeliverableType: "Posts",
-            dealDeliverablePlatform: campaign?.platform || "Instagram",
-            dealDeliverableQuantity: 2,
-            dealDeliverableDescription:
-              "High-quality posts featuring the product",
-          },
-        ],
-        dealSubmissionDeadline: "",
-        dealPostingDeadline: "",
-        dealExpiryDate: "7",
-        dealHashtags: campaign?.hashtags || [],
-        dealContentGuidelines: campaign?.contentGuidelines || [],
-        dealDosAndDonts: campaign
-          ? {
-              dealDos: campaign.dosAndDonts.dos,
-              dealDonts: campaign.dosAndDonts.donts,
-            }
-          : { dealDos: [], dealDonts: [] },
-        dealApplicationMessage: `Hi ${inf.displayName}! We love your content and would love to collaborate with you for our latest campaign. Your style perfectly aligns with our brand values. Please check the details and let us know if you're interested!`,
-      }),
-      [campaign]
-    );
-
-    // Initialize form data only when modal opens or influencer changes
-    useEffect(() => {
-      if (isOpen && influencer) {
-        const initialData = existingDealData || getDefaultDealData(influencer);
-        setFormData(initialData);
-        setActiveTab(0); // Reset to first tab when opening
-      }
-    }, [isOpen, influencer, existingDealData, getDefaultDealData]);
-
-    // Memoized input change handler
-    const handleInputChange = useCallback(
-      <K extends keyof DealFormData>(field: K, value: DealFormData[K]) => {
-        setFormData((prev) => (prev ? { ...prev, [field]: value } : null));
-      },
-      []
-    );
-
-    // Memoized deliverable handlers
-    const addDeliverable = useCallback(() => {
-      setFormData((prev) =>
-        prev
-          ? {
-              ...prev,
-              dealDeliverables: [
-                ...prev.dealDeliverables,
-                {
-                  dealDeliverableType: "Posts",
-                  dealDeliverablePlatform: campaign?.platform || "Instagram",
-                  dealDeliverableQuantity: 1,
-                  dealDeliverableDescription: "Additional deliverable",
-                },
-              ],
-            }
-          : null
-      );
-    }, [campaign?.platform]);
-
-    const updateDeliverable = useCallback(
-      (index: number, field: string, value: string | number) => {
-        setFormData((prev) =>
-          prev
-            ? {
-                ...prev,
-                dealDeliverables: prev.dealDeliverables.map((del, i) =>
-                  i === index ? { ...del, [field]: value } : del
-                ),
-              }
-            : null
-        );
-      },
-      []
-    );
-
-    const removeDeliverable = useCallback((index: number) => {
-      setFormData((prev) =>
-        prev
-          ? {
-              ...prev,
-              dealDeliverables: prev.dealDeliverables.filter(
-                (_, i) => i !== index
-              ),
-            }
-          : null
-      );
-    }, []);
-
-    // Memoized save handler
-    const handleSave = useCallback(() => {
-      if (formData) {
-        onSaveDeal(formData);
-      }
-    }, [formData, onSaveDeal]);
-
-    // Memoized tab change handler
-    const handleTabChange = useCallback((tabId: number) => {
-      setActiveTab(tabId);
-    }, []);
-
-    // Memoized tab content renderer
-    const renderTabContent = useMemo(() => {
-      if (!formData) return null;
-
-      switch (activeTab) {
-        case 0: // Payment
-          return (
-            <TabContent>
-              <FormGroup>
-                <FormLabel required>Payment Amount (₹)</FormLabel>
-                <FormInput
-                  type="number"
-                  value={formData.dealAmount}
-                  onChange={(e) =>
-                    handleInputChange("dealAmount", Number(e.target.value))
-                  }
-                  placeholder="Enter amount"
-                />
-                <SuggestedPricing>
-                  Suggested: ₹{influencer?.suggestedRate.toLocaleString()}
-                </SuggestedPricing>
-              </FormGroup>
-
-              <FormGroup>
-                <FormLabel>Payment Structure</FormLabel>
-                <PaymentOptions>
-                  {["completion", "upfront", "milestone"].map((structure) => (
-                    <PaymentOption
-                      key={structure}
-                      active={formData.dealPaymentStructure === structure}
-                      onClick={() =>
-                        handleInputChange(
-                          "dealPaymentStructure",
-                          structure as DealFormData["dealPaymentStructure"]
-                        )
-                      }
-                    >
-                      {structure === "completion" && "On Completion"}
-                      {structure === "upfront" && "Upfront Payment"}
-                      {structure === "milestone" && "Milestone Based"}
-                    </PaymentOption>
-                  ))}
-                </PaymentOptions>
-              </FormGroup>
-
-              <CheckboxGroup>
-                <Checkbox
-                  checked={formData.dealNegotiableAmount}
-                  onChange={(e) =>
-                    handleInputChange("dealNegotiableAmount", e.target.checked)
-                  }
-                />
-                <label>Allow negotiation</label>
-              </CheckboxGroup>
-            </TabContent>
-          );
-
-        case 1: // Deliverables
-          return (
-            <TabContent>
-              <DeliverablesContainer>
-                {formData.dealDeliverables.map((deliverable, index) => (
-                  <DeliverableCard key={index}>
-                    <DeliverableHeader>
-                      <h4>Deliverable {index + 1}</h4>
-                      {formData.dealDeliverables.length > 1 && (
-                        <RemoveButton onClick={() => removeDeliverable(index)}>
-                          <X size={16} />
-                        </RemoveButton>
-                      )}
-                    </DeliverableHeader>
-
-                    <FormRow>
-                      <FormGroup>
-                        <FormLabel>Content Type</FormLabel>
-                        <FormSelect
-                          value={deliverable.dealDeliverableType}
-                          onChange={(e) =>
-                            updateDeliverable(
-                              index,
-                              "dealDeliverableType",
-                              e.target.value
-                            )
-                          }
-                        >
-                          <option value="Posts">Posts</option>
-                          <option value="Stories">Stories</option>
-                          <option value="Reels">Reels</option>
-                          <option value="IGTV">IGTV</option>
-                        </FormSelect>
-                      </FormGroup>
-
-                      <FormGroup>
-                        <FormLabel>Quantity</FormLabel>
-                        <FormInput
-                          type="number"
-                          min="1"
-                          value={deliverable.dealDeliverableQuantity}
-                          onChange={(e) =>
-                            updateDeliverable(
-                              index,
-                              "dealDeliverableQuantity",
-                              Number(e.target.value)
-                            )
-                          }
-                        />
-                      </FormGroup>
-                    </FormRow>
-
-                    <FormGroup>
-                      <FormLabel>Description</FormLabel>
-                      <FormTextarea
-                        value={deliverable.dealDeliverableDescription}
-                        onChange={(e) =>
-                          updateDeliverable(
-                            index,
-                            "dealDeliverableDescription",
-                            e.target.value
-                          )
-                        }
-                        placeholder="Describe this deliverable..."
-                      />
-                    </FormGroup>
-                  </DeliverableCard>
-                ))}
-
-                <AddButton onClick={addDeliverable}>
-                  <Plus size={16} />
-                  Add Deliverable
-                </AddButton>
-              </DeliverablesContainer>
-            </TabContent>
-          );
-
-        case 2: // Timeline
-          return (
-            <TabContent>
-              <FormRow>
-                <FormGroup>
-                  <FormLabel required>Submission Deadline</FormLabel>
-                  <FormInput
-                    type="datetime-local"
-                    value={formData.dealSubmissionDeadline}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "dealSubmissionDeadline",
-                        e.target.value
-                      )
-                    }
-                  />
-                </FormGroup>
-
-                <FormGroup>
-                  <FormLabel required>Go-Live Date</FormLabel>
-                  <FormInput
-                    type="datetime-local"
-                    value={formData.dealPostingDeadline}
-                    onChange={(e) =>
-                      handleInputChange("dealPostingDeadline", e.target.value)
-                    }
-                  />
-                </FormGroup>
-              </FormRow>
-
-              <FormGroup>
-                <FormLabel>Deal Expiry</FormLabel>
-                <FormSelect
-                  value={formData.dealExpiryDate}
-                  onChange={(e) =>
-                    handleInputChange("dealExpiryDate", e.target.value)
-                  }
-                >
-                  <option value="3">3 days</option>
-                  <option value="7">7 days</option>
-                  <option value="14">14 days</option>
-                  <option value="30">30 days</option>
-                </FormSelect>
-              </FormGroup>
-            </TabContent>
-          );
-
-        case 3: // Content
-          return (
-            <TabContent>
-              <FormGroup>
-                <FormLabel>
-                  Required Hashtags ({formData.dealHashtags.length})
-                </FormLabel>
-                <TagContainer>
-                  {formData.dealHashtags.map((hashtag, index) => (
-                    <Tag key={index}>
-                      {hashtag}
-                      <button
-                        onClick={() => {
-                          const newHashtags = formData.dealHashtags.filter(
-                            (_, i) => i !== index
-                          );
-                          handleInputChange("dealHashtags", newHashtags);
-                        }}
-                      >
-                        <X size={12} />
-                      </button>
-                    </Tag>
-                  ))}
-                </TagContainer>
-              </FormGroup>
-
-              <FormGroup>
-                <FormLabel>Personalized Message</FormLabel>
-                <FormTextarea
-                  value={formData.dealApplicationMessage}
-                  onChange={(e) =>
-                    handleInputChange("dealApplicationMessage", e.target.value)
-                  }
-                  placeholder="Write a personalized message..."
-                  rows={4}
-                />
-              </FormGroup>
-            </TabContent>
-          );
-
-        default:
-          return null;
-      }
-    }, [
-      activeTab,
-      formData,
-      influencer,
-      handleInputChange,
-      addDeliverable,
-      updateDeliverable,
-      removeDeliverable,
-    ]);
-
-    if (!formData || !influencer) return null;
-
-    return (
-      <Drawer
-        isOpen={isOpen}
-        onClose={onClose}
-        title={`Deal: ${influencer.username}`}
-        size="lg"
-      >
-        <ModalContent>
-          <InfluencerPreview>
-            <img src={influencer.profileImage} alt={influencer.displayName} />
-            <div>
-              <h3>{influencer.username}</h3>
-              <p>
-                {(influencer.followers / 1000).toFixed(0)}K followers •{" "}
-                {influencer.engagementRate}% engagement
-              </p>
-            </div>
-          </InfluencerPreview>
-
-          <TabNavigation>
-            {tabs.map((tab) => (
-              <TabButton
-                key={tab.id}
-                active={activeTab === tab.id}
-                onClick={() => handleTabChange(tab.id)}
-              >
-                <tab.icon size={16} />
-                {tab.label}
-              </TabButton>
-            ))}
-          </TabNavigation>
-
-          {renderTabContent}
-
-          <ModalFooter>
-            <ActionButton onClick={onClose} variant="secondary">
-              Cancel
-            </ActionButton>
-            <ActionButton onClick={handleSave} primary>
-              Save Deal
-            </ActionButton>
-          </ModalFooter>
-        </ModalContent>
-      </Drawer>
-    );
-  }
-);
-
-DealCreationModal.displayName = "DealCreationModal";
 
 const CustomDealsPage: React.FC = () => {
   const { campaignId } = useParams<{ campaignId: string }>();
@@ -568,7 +223,7 @@ const CustomDealsPage: React.FC = () => {
     useState<SelectedInfluencer | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
 
-  // Enhanced mock campaign data (same as before)
+  // Enhanced mock campaign data
   useEffect(() => {
     if (campaignId) {
       const mockCampaign: Campaign = {
@@ -712,9 +367,6 @@ const CustomDealsPage: React.FC = () => {
     setModalOpen(false);
     setCurrentEditingInfluencer(null);
   }, []);
-
-  // Rest of the component remains the same (InfluencerGlimpse, DealStatusBadge, InfluencerDealCard)
-  // ... (keeping the existing components but with memoization where needed)
 
   // Memoized Influencer Glimpse Component
   const InfluencerGlimpse: React.FC = React.memo(() => {
@@ -1036,6 +688,10 @@ const PageTitle = styled.h1`
   font-weight: ${sharedTheme.typography.fontWeights.bold};
   color: ${sharedTheme.colorVariants.secondary.dark};
   margin: 0 0 0.5rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 `;
 
 const PageSubtitle = styled.h2`
@@ -1045,7 +701,7 @@ const PageSubtitle = styled.h2`
   margin: 0;
 `;
 
-// Influencer Glimpse Components (reused from bulk deals)
+// Influencer Glimpse Components
 const InfluencerGlimpseContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -1189,6 +845,14 @@ const BudgetItem = styled.div`
   span:last-child {
     font-weight: ${sharedTheme.typography.fontWeights.semibold};
     color: ${sharedTheme.colorVariants.secondary.dark};
+
+    &.positive {
+      color: #16a34a;
+    }
+
+    &.negative {
+      color: #ef4444;
+    }
   }
 `;
 
@@ -1219,7 +883,7 @@ const DealCard = styled.div<{ status: DealStatus }>`
   transition: all 0.2s ease;
 
   &:hover {
-    shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     transform: translateY(-2px);
   }
 `;
@@ -1460,304 +1124,6 @@ const IncompleteMessage = styled.div`
   border-radius: 8px;
   color: #92400e;
   font-size: ${sharedTheme.typography.fontSizes.sm};
-`;
-
-// Modal Components
-const ModalContent = styled.div`
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-`;
-
-const InfluencerPreview = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  background: #f9fafb;
-  border-radius: 8px;
-  margin-bottom: 1.5rem;
-
-  img {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    object-fit: cover;
-  }
-
-  h3 {
-    margin: 0;
-    font-size: ${sharedTheme.typography.fontSizes.md};
-    color: ${sharedTheme.colorVariants.secondary.dark};
-  }
-
-  p {
-    margin: 0.25rem 0 0 0;
-    font-size: ${sharedTheme.typography.fontSizes.sm};
-    color: ${sharedTheme.colorVariants.secondary.light};
-  }
-`;
-
-const TabNavigation = styled.div`
-  display: flex;
-  border-bottom: 1px solid #e5e7eb;
-  margin-bottom: 1.5rem;
-`;
-
-const TabButton = styled.button<{ active: boolean }>`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  border: none;
-  background: transparent;
-  color: ${(props) =>
-    props.active
-      ? sharedTheme.colorVariants.primary.dark
-      : sharedTheme.colorVariants.secondary.light};
-  font-size: ${sharedTheme.typography.fontSizes.sm};
-  font-weight: ${sharedTheme.typography.fontWeights.medium};
-  cursor: pointer;
-  border-bottom: 2px solid
-    ${(props) =>
-      props.active ? sharedTheme.colorVariants.primary.dark : "transparent"};
-  transition: all 0.2s ease;
-
-  &:hover {
-    color: ${sharedTheme.colorVariants.primary.dark};
-  }
-`;
-
-const TabContent = styled.div`
-  flex: 1;
-  overflow-y: auto;
-  padding-bottom: 1rem;
-`;
-
-const FormGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-`;
-
-const FormRow = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-  }
-`;
-
-const FormLabel = styled.label<{ required?: boolean }>`
-  font-size: ${sharedTheme.typography.fontSizes.sm};
-  font-weight: ${sharedTheme.typography.fontWeights.medium};
-  color: ${sharedTheme.colorVariants.secondary.dark};
-
-  ${(props) =>
-    props.required &&
-    `
-    &::after {
-      content: " *";
-      color: #ef4444;
-    }
-  `}
-`;
-
-const FormInput = styled.input`
-  padding: 0.75rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  font-size: ${sharedTheme.typography.fontSizes.sm};
-  transition: border-color 0.2s ease;
-
-  &:focus {
-    outline: none;
-    border-color: ${sharedTheme.colorVariants.primary.dark};
-    box-shadow: 0 0 0 3px ${sharedTheme.colorVariants.primary.dark}20;
-  }
-`;
-
-const FormSelect = styled.select`
-  padding: 0.75rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  font-size: ${sharedTheme.typography.fontSizes.sm};
-  background-color: white;
-  cursor: pointer;
-
-  &:focus {
-    outline: none;
-    border-color: ${sharedTheme.colorVariants.primary.dark};
-    box-shadow: 0 0 0 3px ${sharedTheme.colorVariants.primary.dark}20;
-  }
-`;
-
-const FormTextarea = styled.textarea`
-  padding: 0.75rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  font-size: ${sharedTheme.typography.fontSizes.sm};
-  min-height: 80px;
-  resize: vertical;
-
-  &:focus {
-    outline: none;
-    border-color: ${sharedTheme.colorVariants.primary.dark};
-    box-shadow: 0 0 0 3px ${sharedTheme.colorVariants.primary.dark}20;
-  }
-`;
-
-const SuggestedPricing = styled.div`
-  font-size: ${sharedTheme.typography.fontSizes.xs};
-  color: ${sharedTheme.colorVariants.secondary.light};
-`;
-
-const PaymentOptions = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 0.75rem;
-`;
-
-const PaymentOption = styled.button<{ active: boolean }>`
-  padding: 0.75rem;
-  border: 2px solid
-    ${(props) =>
-      props.active ? sharedTheme.colorVariants.primary.dark : "#e5e7eb"};
-  border-radius: 8px;
-  background: ${(props) =>
-    props.active ? sharedTheme.colorVariants.primary.dark + "10" : "white"};
-  color: ${(props) =>
-    props.active
-      ? sharedTheme.colorVariants.primary.dark
-      : sharedTheme.colorVariants.secondary.dark};
-  font-size: ${sharedTheme.typography.fontSizes.sm};
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    border-color: ${sharedTheme.colorVariants.primary.dark};
-  }
-`;
-
-const CheckboxGroup = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-
-  label {
-    font-size: ${sharedTheme.typography.fontSizes.sm};
-    color: ${sharedTheme.colorVariants.secondary.dark};
-  }
-`;
-
-const Checkbox = styled.input.attrs({ type: "checkbox" })`
-  width: 16px;
-  height: 16px;
-  accent-color: ${sharedTheme.colorVariants.primary.dark};
-`;
-
-const DeliverablesContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-`;
-
-const DeliverableCard = styled.div`
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 1rem;
-  background: #fafbfc;
-`;
-
-const DeliverableHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-
-  h4 {
-    margin: 0;
-    font-size: ${sharedTheme.typography.fontSizes.sm};
-    font-weight: ${sharedTheme.typography.fontWeights.semibold};
-    color: ${sharedTheme.colorVariants.secondary.dark};
-  }
-`;
-
-const RemoveButton = styled.button`
-  padding: 0.25rem;
-  border: 1px solid #ef4444;
-  border-radius: 4px;
-  background: white;
-  color: #ef4444;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: #ef4444;
-    color: white;
-  }
-`;
-
-const AddButton = styled.button`
-  padding: 0.75rem;
-  border: 1px dashed ${sharedTheme.colorVariants.primary.dark};
-  border-radius: 8px;
-  background: transparent;
-  color: ${sharedTheme.colorVariants.primary.dark};
-  cursor: pointer;
-  font-size: ${sharedTheme.typography.fontSizes.sm};
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  justify-content: center;
-
-  &:hover {
-    background: ${sharedTheme.colorVariants.primary.dark}10;
-  }
-`;
-
-const TagContainer = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-`;
-
-const Tag = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.25rem 0.5rem;
-  background: ${sharedTheme.colorVariants.primary.dark}10;
-  border: 1px solid ${sharedTheme.colorVariants.primary.dark}30;
-  border-radius: 4px;
-  font-size: ${sharedTheme.typography.fontSizes.xs};
-  color: ${sharedTheme.colorVariants.primary.dark};
-
-  button {
-    background: none;
-    border: none;
-    color: inherit;
-    cursor: pointer;
-    padding: 0;
-    display: flex;
-    align-items: center;
-  }
-`;
-
-const ModalFooter = styled.div`
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid #e5e7eb;
-  margin-top: auto;
 `;
 
 export default CustomDealsPage;
