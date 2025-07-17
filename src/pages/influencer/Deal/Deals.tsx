@@ -89,6 +89,38 @@ const mockDeals: Deal[] = [
     category: "Technology",
     priority: "Medium",
   },
+  {
+    id: "7",
+    title: "Healthy Meal Prep",
+    brand: "NutriMeals",
+    brandLogo:
+      "https://img.freepik.com/free-vector/gradient-food-logo-template_23-2149373515.jpg",
+    amount: "₹4,000",
+    status: "pending",
+    createdDate: "July 12, 2025",
+    deadline: "July 26, 2025",
+    description: "Create healthy meal prep content for busy professionals",
+    deliverables: ["3 Instagram Reels", "5 Posts", "10 Stories"],
+    location: "Bangalore",
+    category: "Food",
+    priority: "Low",
+  },
+  {
+    id: "8",
+    title: "Fitness Challenge",
+    brand: "FitLife",
+    brandLogo:
+      "https://img.freepik.com/free-vector/gradient-fitness-logo-template_23-2149660633.jpg",
+    amount: "₹5,000",
+    status: "pending",
+    createdDate: "July 10, 2025",
+    deadline: "July 24, 2025",
+    description: "30-day fitness challenge with daily workout tips",
+    deliverables: ["1 YouTube Video", "Daily Stories", "3 Posts"],
+    location: "Chennai",
+    category: "Fitness",
+    priority: "Medium",
+  },
 
   // Active Deals
   {

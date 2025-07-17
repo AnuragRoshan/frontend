@@ -62,7 +62,7 @@ const RejectDealModal: React.FC<RejectDealModalProps> = ({
   if (!deal) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Reject Deal" size="md">
+    <Modal isOpen={isOpen} onClose={onClose} title="Reject Deal" size="lg">
       <RejectForm onSubmit={handleSubmit}>
         {/* Deal Summary */}
         <DealSummary>
