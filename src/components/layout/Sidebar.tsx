@@ -98,6 +98,7 @@ const Sidebar = () => {
       label: "Dashboard",
       icon: LayoutDashboard,
       userType: "influencer",
+      isLocked: true,
     },
     {
       to: "/brandDashboard",

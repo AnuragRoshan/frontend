@@ -1351,7 +1351,7 @@ const ToggleButton = styled.button<{ active: boolean }>`
   padding: 0.5rem 1rem;
   border-radius: 6px;
   border: 1px solid #e5e7eb;
-  background: ${(props) => (props.active ? "#3b82f6" : "white")};
+  background: ${(props) => (props.active ? "#1E3A8A" : "white")};
   color: ${(props) => (props.active ? "white" : "#374151")};
   font-size: 0.875rem;
   font-weight: 500;
@@ -1453,7 +1453,7 @@ const MessageInput = styled.textarea`
 
   &:focus {
     outline: none;
-    border-color: #3b82f6;
+    border-color: #1e3a8a;
     box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
   }
 `;
@@ -1487,7 +1487,7 @@ const MessageSendButton = styled.button`
   justify-content: center;
   width: 40px;
   height: 40px;
-  background-color: #3b82f6;
+  background-color: #1e3a8a;
   border: none;
   border-radius: 6px;
   color: white;
@@ -1584,7 +1584,7 @@ const PaymentStepNumber = styled.div`
   justify-content: center;
   width: 32px;
   height: 32px;
-  background: #3b82f6;
+  background: #1e3a8a;
   color: white;
   font-weight: 600;
   border-radius: 50%;
@@ -1662,7 +1662,7 @@ const PaymentMethodTitle = styled.div`
 
 const PaymentMethodAction = styled.button`
   font-size: 0.875rem;
-  color: #3b82f6;
+  color: #1e3a8a;
   background: none;
   border: none;
   cursor: pointer;
@@ -1810,6 +1810,7 @@ const TabsContainer = styled.div`
   display: flex;
   background: white;
   border-radius: 12px;
+  gap: 0.5rem;
   padding: 0.25rem;
   margin-bottom: 1.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -1822,7 +1823,7 @@ const TabButton = styled.button<{ active: boolean }>`
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
   border: none;
-  background: ${(props) => (props.active ? "black" : "transparent")};
+  background: ${(props) => (props.active ? "#1E3A8A" : "transparent")};
   color: ${(props) => (props.active ? "white" : "#6b7280")};
   border-radius: 8px;
   font-weight: 500;
@@ -1831,7 +1832,7 @@ const TabButton = styled.button<{ active: boolean }>`
   white-space: nowrap;
 
   &:hover {
-    background: ${(props) => (props.active ? "#3b82f6" : "#f3f4f6")};
+    background: ${(props) => (props.active ? "#1E3A8A" : "#f3f4f6")};
   }
 `;
 
@@ -2113,7 +2114,7 @@ const QuickAction = styled.button`
   }
 
   svg {
-    color: #3b82f6;
+    color: #1e3a8a;
     flex-shrink: 0;
   }
 `;
@@ -2146,6 +2147,7 @@ const SectionTitle = styled.h2`
   font-weight: 600;
   color: #111827;
   margin: 0;
+  margin-bottom: 1rem;
 `;
 
 const StatusBadge = styled.div<{ status: string }>`
@@ -2226,7 +2228,7 @@ const ProgressTitle = styled.h3`
 const ProgressPercentage = styled.div`
   font-size: 1.25rem;
   font-weight: 700;
-  color: #3b82f6;
+  color: #1e3a8a;
 `;
 
 const ProgressBar = styled.div`
@@ -2241,7 +2243,7 @@ const ProgressBar = styled.div`
 const ProgressFill = styled.div<{ width: number }>`
   width: ${(props) => props.width}%;
   height: 100%;
-  background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+  background: linear-gradient(90deg, #1e3a8a, #1d4ed8);
   transition: width 0.3s ease;
 `;
 
@@ -2473,7 +2475,7 @@ const UploadArea = styled.div`
   margin-bottom: 1rem;
 
   &:hover {
-    border-color: #3b82f6;
+    border-color: #1e3a8a;
     background: #f0f9ff;
   }
 `;
@@ -2514,7 +2516,7 @@ const UploadProgressBar = styled.div`
 const UploadProgressFill = styled.div<{ width: number }>`
   width: ${(props) => props.width}%;
   height: 100%;
-  background: #3b82f6;
+  background: #1e3a8a;
   transition: width 0.3s ease;
 `;
 
@@ -2587,7 +2589,7 @@ const CaptionTextarea = styled.textarea`
 
   &:focus {
     outline: none;
-    border-color: #3b82f6;
+    border-color: #1e3a8a;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
   }
 `;
@@ -2606,7 +2608,7 @@ const TipItem = styled.div`
   color: #6b7280;
 
   svg {
-    color: #3b82f6;
+    color: #1e3a8a;
     flex-shrink: 0;
   }
 `;
@@ -2622,8 +2624,8 @@ const ActionButton = styled.button<{ primary?: boolean }>`
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  border: 1px solid ${(props) => (props.primary ? "#3b82f6" : "#d1d5db")};
-  background: ${(props) => (props.primary ? "#3b82f6" : "white")};
+  border: 1px solid ${(props) => (props.primary ? "#1E3A8A" : "#d1d5db")};
+  background: ${(props) => (props.primary ? "#1E3A8A" : "white")};
   color: ${(props) => (props.primary ? "white" : "#374151")};
   border-radius: 8px;
   font-weight: 500;

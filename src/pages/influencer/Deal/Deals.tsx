@@ -640,7 +640,7 @@ const HeaderTitle = styled.h1`
   gap: 0.75rem;
   font-size: ${sharedTheme.typography.fontSizes.xxl};
   font-weight: ${sharedTheme.typography.fontWeights.bold};
-  color: ${sharedTheme.colorVariants.secondary.dark};
+  color: ${"#1E3A8A"};
   margin: 0;
 `;
 
@@ -691,8 +691,8 @@ const SearchInput = styled.input`
 
   &:focus {
     outline: none;
-    border-color: ${sharedTheme.colorVariants.primary.light};
-    box-shadow: 0 0 0 3px ${sharedTheme.colorVariants.primary.light}20;
+    border-color: #1e3a8a;
+    box-shadow: 0 0 0 3px #1e3a8a20;
   }
 `;
 
@@ -725,14 +725,10 @@ const TabButton = styled.button<{ active: boolean }>`
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: ${sharedTheme.spacing.sm} ${sharedTheme.spacing.md};
-  border: 1px solid
-    ${(props) =>
-      props.active ? sharedTheme.colorVariants.primary.light : "#e5e7eb"};
-  background: ${(props) =>
-    props.active ? sharedTheme.colorVariants.primary.light : "white"};
-  color: ${(props) =>
-    props.active ? "white" : sharedTheme.colorVariants.secondary.dark};
+  padding: ${sharedTheme.spacing.sm};
+  border: 1px solid ${(props) => (props.active ? "#1E3A8A" : "#e5e7eb")};
+  background: ${(props) => (props.active ? "#1E3A8A" : "white")};
+  color: ${(props) => (props.active ? "white" : "#1E3A8A")};
   border-radius: ${sharedTheme.borderRadius.md};
   cursor: pointer;
   font-size: ${sharedTheme.typography.fontSizes.sm};
@@ -744,12 +740,9 @@ const TabButton = styled.button<{ active: boolean }>`
   white-space: nowrap;
 
   &:hover {
-    background: ${(props) =>
-      props.active ? sharedTheme.colorVariants.primary.dark : "#f9fafb"};
+    background: ${(props) => (props.active ? "#1E3A8A" : "#f9fafb")};
     border-color: ${(props) =>
-      props.active
-        ? sharedTheme.colorVariants.primary.dark
-        : sharedTheme.colorVariants.secondary.light};
+      props.active ? "#1E3A8A" : sharedTheme.colorVariants.secondary.light};
   }
 
   @media (max-width: 768px) {
@@ -779,7 +772,7 @@ const FilterButton = styled.button`
   border-radius: ${sharedTheme.borderRadius.md};
   cursor: pointer;
   font-size: ${sharedTheme.typography.fontSizes.sm};
-  color: ${sharedTheme.colorVariants.secondary.dark};
+  color: ${"#1E3A8A"};
   transition: all 0.2s ease;
 
   &:hover {
@@ -810,7 +803,7 @@ const SortSelect = styled.select`
 
   &:focus {
     outline: none;
-    border-color: ${sharedTheme.colorVariants.primary.light};
+    border-color: #1e3a8a;
   }
 `;
 
@@ -836,7 +829,7 @@ const EmptyStateIcon = styled.div`
 const EmptyStateTitle = styled.h3`
   font-size: ${sharedTheme.typography.fontSizes.lg};
   font-weight: ${sharedTheme.typography.fontWeights.semibold};
-  color: ${sharedTheme.colorVariants.secondary.dark};
+  color: ${"#1E3A8A"};
   margin: 0 0 ${sharedTheme.spacing.sm} 0;
 `;
 
@@ -868,7 +861,7 @@ const DealCard = styled.div`
   &:hover {
     transform: translateY(-2px);
     box-shadow: ${sharedTheme.shadows.lg};
-    border-color: ${sharedTheme.colorVariants.primary.light}40;
+    border-color: #1e3a8a40;
   }
 `;
 
@@ -914,7 +907,7 @@ const BrandName = styled.div`
 const DealTitle = styled.h3`
   font-size: ${sharedTheme.typography.fontSizes.lg};
   font-weight: ${sharedTheme.typography.fontWeights.semibold};
-  color: ${sharedTheme.colorVariants.secondary.dark};
+  color: ${"#1E3A8A"};
   margin: 0;
   line-height: 1.4;
 `;
@@ -922,7 +915,7 @@ const DealTitle = styled.h3`
 const DealAmount = styled.div`
   font-size: ${sharedTheme.typography.fontSizes.xl};
   font-weight: ${sharedTheme.typography.fontWeights.bold};
-  color: ${sharedTheme.colorVariants.primary.light};
+  color: #1e3a8a;
 `;
 
 const DealMeta = styled.div`
@@ -966,7 +959,7 @@ const DeliverablesSection = styled.div`
 const SectionTitle = styled.h4`
   font-size: ${sharedTheme.typography.fontSizes.sm};
   font-weight: ${sharedTheme.typography.fontWeights.semibold};
-  color: ${sharedTheme.colorVariants.secondary.dark};
+  color: ${"#1E3A8A"};
   margin: 0 0 ${sharedTheme.spacing.sm} 0;
 `;
 
@@ -978,12 +971,12 @@ const DeliverablesList = styled.div`
 
 const DeliverableTag = styled.span`
   padding: 0.25rem 0.5rem;
-  background: ${sharedTheme.colorVariants.primary.light}10;
-  color: ${sharedTheme.colorVariants.primary.light};
+  background: #1e3a8a10;
+  color: #1e3a8a;
   border-radius: ${sharedTheme.borderRadius.sm};
   font-size: ${sharedTheme.typography.fontSizes.xs};
   font-weight: ${sharedTheme.typography.fontWeights.medium};
-  border: 1px solid ${sharedTheme.colorVariants.primary.light}20;
+  border: 1px solid #1e3a8a20;
 `;
 
 const EngagementSection = styled.div`
@@ -1009,7 +1002,7 @@ const EngagementStat = styled.div`
 const StatValue = styled.div`
   font-size: ${sharedTheme.typography.fontSizes.md};
   font-weight: ${sharedTheme.typography.fontWeights.bold};
-  color: ${sharedTheme.colorVariants.secondary.dark};
+  color: ${"#1E3A8A"};
   margin: 0.25rem 0;
 `;
 
@@ -1047,7 +1040,7 @@ const RatingStars = styled.div`
 const RatingValue = styled.span`
   font-size: ${sharedTheme.typography.fontSizes.sm};
   font-weight: ${sharedTheme.typography.fontWeights.bold};
-  color: ${sharedTheme.colorVariants.secondary.dark};
+  color: ${"#1E3A8A"};
 `;
 
 const FeedbackText = styled.p`
@@ -1059,7 +1052,7 @@ const FeedbackText = styled.p`
   background: white;
   padding: ${sharedTheme.spacing.sm};
   border-radius: ${sharedTheme.borderRadius.sm};
-  border-left: 3px solid ${sharedTheme.colorVariants.primary.light};
+  border-left: 3px solid #1e3a8a;
 `;
 
 const DealActions = styled.div`
@@ -1078,20 +1071,11 @@ const ActionButton = styled.button<{ variant: "primary" | "secondary" }>`
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: ${sharedTheme.spacing.sm} ${sharedTheme.spacing.md};
+  padding: ${sharedTheme.spacing.sm};
   border: 1px solid
-    ${(props) =>
-      props.variant === "primary"
-        ? sharedTheme.colorVariants.primary.light
-        : "#e5e7eb"};
-  background: ${(props) =>
-    props.variant === "primary"
-      ? sharedTheme.colorVariants.primary.light
-      : "white"};
-  color: ${(props) =>
-    props.variant === "primary"
-      ? "white"
-      : sharedTheme.colorVariants.secondary.dark};
+    ${(props) => (props.variant === "primary" ? "#1E3A8A" : "#1E3A8A")};
+  background: ${(props) => (props.variant === "primary" ? "#1E3A8A" : "white")};
+  color: ${(props) => (props.variant === "primary" ? "white" : "#1E3A8A")};
   border-radius: ${sharedTheme.borderRadius.md};
   font-size: ${sharedTheme.typography.fontSizes.sm};
   font-weight: ${sharedTheme.typography.fontWeights.medium};
@@ -1100,12 +1084,10 @@ const ActionButton = styled.button<{ variant: "primary" | "secondary" }>`
 
   &:hover {
     background: ${(props) =>
-      props.variant === "primary"
-        ? sharedTheme.colorVariants.primary.dark
-        : "#f3f4f6"};
+      props.variant === "primary" ? "#1E3A8A" : "#f3f4f6"};
     border-color: ${(props) =>
       props.variant === "primary"
-        ? sharedTheme.colorVariants.primary.dark
+        ? "#1E3A8A"
         : sharedTheme.colorVariants.secondary.light};
     transform: translateY(-1px);
     box-shadow: ${sharedTheme.shadows.sm};
