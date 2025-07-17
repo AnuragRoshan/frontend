@@ -112,6 +112,12 @@ const Sidebar = () => {
       userType: "influencer",
     },
     {
+      to: "/deals",
+      label: "Deals",
+      icon: Handshake,
+      userType: "influencer",
+    },
+    {
       to: "/brandCampaign",
       label: "Campaigns",
       icon: FolderKanban,
@@ -176,7 +182,7 @@ const Sidebar = () => {
     },
   ];
 
-  const userType: "influencer" | "brand" = "brand";
+  const userType: "influencer" | "brand" = "influencer"; // This should be dynamically set based on the logged-in user
 
   // Filter nav items based on userType
   const filteredNavItems = navItems.filter((item) => {

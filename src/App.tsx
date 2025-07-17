@@ -19,6 +19,7 @@ import CollaborationManagement from "./pages/brand/Campaign/CollaborationManagem
 import InfluencerDiscoveryPage from "./pages/brand/Campaign/Brand Campaign/InfluencerDiscovery/InfluencerDiscovery";
 import BulkDealsPage from "./pages/brand/Deal/BulkDeal/BulkDeal";
 import CustomDealsPage from "./pages/brand/Deal/CustomDeal/CustomDeal";
+import Deals from "./pages/influencer/Deal/Deals";
 
 // const Dashboard = () => <div>Analytics Page</div>;
 // const Settings = () => <div>Settings Page</div>;
@@ -97,6 +98,14 @@ const App = () => {
           element={
             <DashboardLayout>
               <Campaigns />
+            </DashboardLayout>
+          }
+        />
+        <Route
+          path="/deals"
+          element={
+            <DashboardLayout>
+              <Deals />
             </DashboardLayout>
           }
         />
