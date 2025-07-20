@@ -17,6 +17,7 @@ import {
   Network,
   BookUser,
   Handshake,
+  Receipt,
 } from "lucide-react";
 import { Tooltip } from "antd";
 
@@ -113,6 +114,13 @@ const Sidebar = () => {
       userType: "influencer",
     },
     {
+      to: "/brandDeals",
+      label: "Deals",
+      icon: Receipt,
+      badge: 8, // Number of pending deals
+      userType: "brand",
+    },
+    {
       to: "/deals",
       label: "Deals",
       icon: Handshake,
@@ -168,6 +176,7 @@ const Sidebar = () => {
       badge: 12,
       userType: "influencer",
     },
+
     {
       to: "/settings",
       label: "Settings",
@@ -183,7 +192,7 @@ const Sidebar = () => {
     },
   ];
 
-  const userType: "influencer" | "brand" = "influencer"; // This should be dynamically set based on the logged-in user
+  const userType: "influencer" | "brand" = "brand"; // This should be dynamically set based on the logged-in user
 
   // Filter nav items based on userType
   const filteredNavItems = navItems.filter((item) => {

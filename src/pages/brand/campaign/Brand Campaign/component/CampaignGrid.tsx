@@ -252,21 +252,7 @@ const CampaignCard = styled.div<{ status: string }>`
   display: flex;
   flex-direction: column;
   background-color: white;
-  border: 2px solid
-    ${(props) => {
-      switch (props.status) {
-        case "draft":
-          return "#e5e7eb";
-        case "live":
-          return "#10b981";
-        case "paused":
-          return "#f59e0b";
-        case "ended":
-          return "#6b7280";
-        default:
-          return "#e5e7eb";
-      }
-    }};
+  border: 2px solid "#e5e7eb";
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   transition: all 0.2s ease;

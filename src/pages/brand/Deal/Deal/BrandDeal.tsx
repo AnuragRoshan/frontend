@@ -1,301 +1,281 @@
-// pages/influencer/Deals/Deals.tsx
-import React, { useState } from "react";
+// pages/brand/Deals/BrandDeals.tsx - Complete Brand Deals Management Page
+import React, { useState, useMemo } from "react";
 import styled from "styled-components";
 import {
-  Clock,
-  Play,
-  CheckCircle,
-  Calendar,
-  MapPin,
-  Eye,
-  MessageSquare,
-  Star,
-  Filter,
+  Receipt,
   Search,
-  ArrowUpDown,
-  Bookmark,
-  Bell,
-  DollarSign,
-  Handshake,
+  Filter,
+  ArrowRightLeft,
+  Clock,
+  Check,
   X,
-  ArrowRightLeft, // New icon for counter offers
+  //   AlertCircle,
+  DollarSign,
+  Calendar,
+  //   User,
+  MessageSquare,
+  Send,
+  Eye,
   TrendingUp,
   TrendingDown,
-  // AlertCircle,
-  Send,
+  CheckCircle,
+  //   XCircle,
+  Star,
+  MapPin,
+  //   ArrowUpDown,
 } from "lucide-react";
-import { sharedTheme } from "../../../styles/theme/theme";
-import WrapperBox from "../../../components/layout/WrapperBox";
-import NegotiationModal from "./DealNegotitationModal";
-import RejectDealModal from "./DealRejectModal";
-import AcceptDealModal from "./AcceptDealModal";
-import ViewDetailsModal from "./ViewDetailModal";
-import { useNavigate } from "react-router-dom";
+import { sharedTheme } from "../../../../styles/theme/theme";
+import WrapperBox from "../../../../components/layout/WrapperBox";
 
-// Types - Enhanced with counter-offer support
+// Types
+interface Deal {
+  id: string;
+  campaignId: string;
+  campaignName: string;
+  influencerId: string;
+  influencerName: string;
+  influencerUsername: string;
+  influencerImage: string;
+  influencerFollowers: number;
+  originalAmount: number;
+  currentAmount: number;
+  status:
+    | "sent"
+    | "counter_offer"
+    | "negotiating"
+    | "accepted"
+    | "rejected"
+    | "completed"
+    | "expired";
+  dealType: "bulk" | "custom";
+  sentDate: string;
+  expiryDate: string;
+  lastActivity: string;
+  deliverables: string[];
+  paymentStructure: "completion" | "upfront" | "milestone";
+  counterOffers?: CounterOffer[];
+  isNegotiable: boolean;
+  hasUnreadMessages: boolean;
+  priority: "High" | "Medium" | "Low";
+  location?: string;
+  category: string;
+  influencerRating?: number;
+}
+
 interface CounterOffer {
   id: string;
   fromType: "brand" | "influencer";
-  amount: string;
+  amount: number;
   message: string;
   timestamp: string;
   isActive: boolean;
 }
 
-interface Deal {
-  id: string;
-  title: string;
-  brand: string;
-  brandLogo: string;
-  amount: string;
-  originalAmount?: string; // New field for original offer amount
-  status: "pending" | "active" | "completed" | "counter_offer" | "negotiating"; // Enhanced status
-  createdDate: string;
-  deadline?: string;
-  completedDate?: string;
-  description: string;
-  deliverables: string[];
-  location?: string;
-  category: string;
-  priority: "High" | "Medium" | "Low";
-  engagement?: {
-    likes?: number;
-    comments?: number;
-    shares?: number;
-  };
-  rating?: number;
-  feedback?: string;
-  counterOffers?: CounterOffer[]; // New field for counter-offer history
-  hasUnreadMessages?: boolean; // New field for unread counter-offers
-  isNegotiable?: boolean; // New field to determine if deal allows negotiation
-  lastActivity?: string; // New field for last negotiation activity
-}
-
-// Enhanced mock data with counter-offer examples
-const mockDeals: Deal[] = [
-  // Pending Deals (including counter-offer scenarios)
+// Enhanced dummy data with more details
+const DUMMY_DEALS: Deal[] = [
   {
-    id: "1",
-    title: "Summer Fashion Collection",
-    brand: "StyleHub",
-    brandLogo:
-      "https://img.freepik.com/free-vector/gradient-fashion-logo-template_23-2149373528.jpg",
-    amount: "₹10,000", // Current negotiated amount
-    originalAmount: "₹8,500", // Original offer
-    status: "counter_offer", // New status
-    createdDate: "July 15, 2025",
-    deadline: "July 30, 2025",
-    description:
-      "Showcase our latest summer collection with authentic styling tips",
-    deliverables: ["2 Instagram Posts", "5 Stories", "1 Reel"],
+    id: "deal_001",
+    campaignId: "camp_001",
+    campaignName: "Summer Collection Launch",
+    influencerId: "inf_001",
+    influencerName: "Priya Sharma",
+    influencerUsername: "@priya_sustainable",
+    influencerImage:
+      "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face",
+    influencerFollowers: 45000,
+    originalAmount: 15000,
+    currentAmount: 18000,
+    status: "counter_offer",
+    dealType: "bulk",
+    sentDate: "2025-07-15",
+    expiryDate: "2025-07-22",
+    lastActivity: "2025-07-20",
+    deliverables: ["Instagram Reel", "Story Series"],
+    paymentStructure: "completion",
+    isNegotiable: true,
+    hasUnreadMessages: true,
+    priority: "High",
     location: "Mumbai",
     category: "Fashion",
-    priority: "High",
-    isNegotiable: true,
-    hasUnreadMessages: true,
-    lastActivity: "July 19, 2025",
+    influencerRating: 4.8,
     counterOffers: [
       {
-        id: "co_1",
+        id: "co_001",
         fromType: "influencer",
-        amount: "₹12,000",
+        amount: 18000,
         message:
-          "I can do this for ₹12,000 considering my engagement rates and the additional reel you've requested.",
-        timestamp: "2025-07-18T10:30:00Z",
-        isActive: false,
-      },
-      {
-        id: "co_2",
-        fromType: "brand",
-        amount: "₹10,000",
-        message:
-          "How about ₹10,000? That's our final budget for this collaboration.",
-        timestamp: "2025-07-19T09:15:00Z",
+          "I can do this for ₹18,000 considering my engagement rates and the extra story series you've requested.",
+        timestamp: "2025-07-20T10:30:00Z",
         isActive: true,
       },
     ],
   },
   {
-    id: "2",
-    title: "Tech Gadget Review",
-    brand: "TechnovateGadgets",
-    brandLogo:
-      "https://img.freepik.com/free-vector/gradient-technology-logo-template_23-2149660622.jpg",
-    amount: "₹12,000",
-    status: "pending",
-    createdDate: "July 14, 2025",
-    deadline: "July 28, 2025",
-    description:
-      "In-depth review of our latest smartphone with unboxing content",
-    deliverables: ["1 YouTube Video", "3 Instagram Posts", "10 Stories"],
+    id: "deal_002",
+    campaignId: "camp_002",
+    campaignName: "Tech Product Review",
+    influencerId: "inf_002",
+    influencerName: "Dev Malhotra",
+    influencerUsername: "@dev_lifestyle",
+    influencerImage:
+      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
+    influencerFollowers: 87000,
+    originalAmount: 25000,
+    currentAmount: 25000,
+    status: "sent",
+    dealType: "custom",
+    sentDate: "2025-07-18",
+    expiryDate: "2025-07-25",
+    lastActivity: "2025-07-18",
+    deliverables: ["YouTube Video", "Instagram Post"],
+    paymentStructure: "milestone",
+    isNegotiable: true,
+    hasUnreadMessages: false,
+    priority: "Medium",
     location: "Delhi",
     category: "Technology",
-    priority: "Medium",
-    isNegotiable: true,
-    hasUnreadMessages: false,
+    influencerRating: 4.6,
+    counterOffers: [],
   },
   {
-    id: "new_negotiating",
-    title: "Wellness Product Launch",
-    brand: "ZenLife",
-    brandLogo:
-      "https://img.freepik.com/free-vector/gradient-wellness-logo-template_23-2149373520.jpg",
-    amount: "₹9,000", // Current negotiated amount
-    originalAmount: "₹7,000", // Original offer
-    status: "negotiating", // Currently in negotiation
-    createdDate: "July 16, 2025",
-    deadline: "July 29, 2025",
-    description: "Launch campaign for our new wellness product line",
-    deliverables: ["2 Instagram Reels", "3 Posts", "8 Stories"],
-    location: "Bangalore",
-    category: "Wellness",
-    priority: "High",
+    id: "deal_003",
+    campaignId: "camp_001",
+    campaignName: "Summer Collection Launch",
+    influencerId: "inf_003",
+    influencerName: "Anjali Singh",
+    influencerUsername: "@anjali_fashion",
+    influencerImage:
+      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face",
+    influencerFollowers: 28000,
+    originalAmount: 12000,
+    currentAmount: 14000,
+    status: "negotiating",
+    dealType: "bulk",
+    sentDate: "2025-07-16",
+    expiryDate: "2025-07-23",
+    lastActivity: "2025-07-21",
+    deliverables: ["Instagram Post", "Story Highlights"],
+    paymentStructure: "completion",
     isNegotiable: true,
     hasUnreadMessages: true,
-    lastActivity: "July 20, 2025",
+    priority: "High",
+    location: "Delhi",
+    category: "Fashion",
+    influencerRating: 4.9,
     counterOffers: [
       {
-        id: "co_3",
+        id: "co_002",
         fromType: "influencer",
-        amount: "₹10,000",
-        message: "Given the scope of work, I'd like to propose ₹10,000.",
-        timestamp: "2025-07-17T14:20:00Z",
+        amount: 14000,
+        message:
+          "Can we do ₹14,000? I'll add an extra story highlight for this campaign.",
+        timestamp: "2025-07-19T14:20:00Z",
         isActive: false,
       },
       {
-        id: "co_4",
+        id: "co_003",
         fromType: "brand",
-        amount: "₹8,500",
-        message:
-          "We can go up to ₹8,500. This is a long-term partnership opportunity.",
-        timestamp: "2025-07-18T11:30:00Z",
-        isActive: false,
-      },
-      {
-        id: "co_5",
-        fromType: "influencer",
-        amount: "₹9,000",
-        message:
-          "Let's meet in the middle at ₹9,000. I'm excited about this partnership!",
-        timestamp: "2025-07-20T09:45:00Z",
+        amount: 13000,
+        message: "How about ₹13,000? That's our final budget for this tier.",
+        timestamp: "2025-07-20T09:15:00Z",
         isActive: true,
       },
     ],
   },
   {
-    id: "7",
-    title: "Healthy Meal Prep",
-    brand: "NutriMeals",
-    brandLogo:
-      "https://img.freepik.com/free-vector/gradient-food-logo-template_23-2149373515.jpg",
-    amount: "₹4,000",
-    status: "pending",
-    createdDate: "July 12, 2025",
-    deadline: "July 26, 2025",
-    description: "Create healthy meal prep content for busy professionals",
-    deliverables: ["3 Instagram Reels", "5 Posts", "10 Stories"],
-    location: "Bangalore",
-    category: "Food",
-    priority: "Low",
-    isNegotiable: false, // This deal is not negotiable
+    id: "deal_004",
+    campaignId: "camp_003",
+    campaignName: "Wellness Brand Partnership",
+    influencerId: "inf_004",
+    influencerName: "Riya Patel",
+    influencerUsername: "@riya_wellness",
+    influencerImage:
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
+    influencerFollowers: 125000,
+    originalAmount: 30000,
+    currentAmount: 30000,
+    status: "accepted",
+    dealType: "custom",
+    sentDate: "2025-07-14",
+    expiryDate: "2025-07-21",
+    lastActivity: "2025-07-19",
+    deliverables: ["Instagram Reel", "YouTube Short", "Story Series"],
+    paymentStructure: "upfront",
+    isNegotiable: false,
     hasUnreadMessages: false,
+    priority: "High",
+    location: "Goa",
+    category: "Wellness",
+    influencerRating: 4.7,
+    counterOffers: [],
   },
   {
-    id: "8",
-    title: "Fitness Challenge",
-    brand: "FitLife",
-    brandLogo:
-      "https://img.freepik.com/free-vector/gradient-fitness-logo-template_23-2149660633.jpg",
-    amount: "₹5,000",
-    status: "pending",
-    createdDate: "July 10, 2025",
-    deadline: "July 24, 2025",
-    description: "30-day fitness challenge with daily workout tips",
-    deliverables: ["1 YouTube Video", "Daily Stories", "3 Posts"],
-    location: "Chennai",
-    category: "Fitness",
-    priority: "Medium",
+    id: "deal_005",
+    campaignId: "camp_004",
+    campaignName: "Food Recipe Series",
+    influencerId: "inf_005",
+    influencerName: "Sneha Gupta",
+    influencerUsername: "@sneha_style",
+    influencerImage:
+      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=face",
+    influencerFollowers: 62000,
+    originalAmount: 8000,
+    currentAmount: 8000,
+    status: "completed",
+    dealType: "bulk",
+    sentDate: "2025-06-10",
+    expiryDate: "2025-06-25",
+    lastActivity: "2025-06-24",
+    deliverables: ["5 Instagram Reels", "10 Posts"],
+    paymentStructure: "completion",
     isNegotiable: true,
     hasUnreadMessages: false,
-  },
-
-  // Active Deals (unchanged)
-  {
-    id: "3",
-    title: "Skincare Routine Campaign",
-    brand: "GlowSkin",
-    brandLogo:
-      "https://img.freepik.com/free-vector/gradient-beauty-logo-template_23-2149373504.jpg",
-    amount: "₹6,500",
-    status: "active",
-    createdDate: "July 10, 2025",
-    deadline: "July 22, 2025",
-    description: "Create morning and evening skincare routine content",
-    deliverables: ["2 Instagram Posts", "1 IGTV", "8 Stories"],
-    location: "Bangalore",
-    category: "Beauty",
-    priority: "High",
-  },
-  {
-    id: "4",
-    title: "Fitness Challenge",
-    brand: "FitLife",
-    brandLogo:
-      "https://img.freepik.com/free-vector/gradient-fitness-logo-template_23-2149660633.jpg",
-    amount: "₹5,000",
-    status: "active",
-    createdDate: "July 8, 2025",
-    deadline: "July 25, 2025",
-    description: "30-day fitness challenge with daily workout tips",
-    deliverables: ["1 YouTube Video", "Daily Stories", "3 Posts"],
-    location: "Chennai",
-    category: "Fitness",
     priority: "Medium",
-  },
-
-  // Completed Deals (unchanged)
-  {
-    id: "5",
-    title: "Travel Destination Showcase",
-    brand: "Wanderlust",
-    brandLogo:
-      "https://img.freepik.com/free-vector/gradient-travel-logo-template_23-2149052925.jpg",
-    amount: "₹15,000",
-    status: "completed",
-    createdDate: "June 20, 2025",
-    completedDate: "July 5, 2025",
-    description: "Showcase hidden gems in Goa with travel tips",
-    deliverables: ["3 YouTube Videos", "10 Instagram Posts", "20 Stories"],
-    location: "Goa",
-    category: "Travel",
-    priority: "High",
-    engagement: { likes: 2500, comments: 450, shares: 320 },
-    rating: 4.8,
-    feedback:
-      "Outstanding content! The videos perfectly captured the essence of our brand.",
-  },
-  {
-    id: "6",
-    title: "Food Recipe Series",
-    brand: "TastyBites",
-    brandLogo:
-      "https://img.freepik.com/free-vector/gradient-food-logo-template_23-2149373515.jpg",
-    amount: "₹7,500",
-    status: "completed",
-    createdDate: "June 15, 2025",
-    completedDate: "June 30, 2025",
-    description: "Create healthy recipe content with step-by-step tutorials",
-    deliverables: ["5 Instagram Reels", "10 Posts", "15 Stories"],
     location: "Pune",
     category: "Food",
+    influencerRating: 4.5,
+    counterOffers: [],
+  },
+  {
+    id: "deal_006",
+    campaignId: "camp_005",
+    campaignName: "Fitness Challenge",
+    influencerId: "inf_006",
+    influencerName: "Rohit Fitness",
+    influencerUsername: "@rohit_fit",
+    influencerImage:
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
+    influencerFollowers: 95000,
+    originalAmount: 20000,
+    currentAmount: 22000,
+    status: "counter_offer",
+    dealType: "custom",
+    sentDate: "2025-07-19",
+    expiryDate: "2025-07-26",
+    lastActivity: "2025-07-21",
+    deliverables: ["YouTube Video", "Instagram Reels", "Stories"],
+    paymentStructure: "milestone",
+    isNegotiable: true,
+    hasUnreadMessages: true,
     priority: "Medium",
-    engagement: { likes: 1800, comments: 320, shares: 150 },
-    rating: 4.5,
-    feedback: "Great recipes! Your audience engagement was fantastic.",
+    location: "Bangalore",
+    category: "Fitness",
+    influencerRating: 4.4,
+    counterOffers: [
+      {
+        id: "co_004",
+        fromType: "influencer",
+        amount: 22000,
+        message:
+          "I'd like ₹22,000 for this collaboration. I can add extra workout tips content.",
+        timestamp: "2025-07-21T15:30:00Z",
+        isActive: true,
+      },
+    ],
   },
 ];
 
-// Helper function for priority colors
+// Helper functions
 const getPriorityColor = (priority: string): string => {
   switch (priority) {
     case "High":
@@ -309,144 +289,123 @@ const getPriorityColor = (priority: string): string => {
   }
 };
 
-const Deals: React.FC = () => {
-  const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<
-    "pending" | "active" | "completed"
-  >("pending");
+const getStatusColor = (status: Deal["status"]): string => {
+  switch (status) {
+    case "sent":
+      return "#3b82f6";
+    case "counter_offer":
+      return "#f59e0b";
+    case "negotiating":
+      return "#ef4444";
+    case "accepted":
+      return "#10b981";
+    case "rejected":
+      return "#ef4444";
+    case "completed":
+      return "#6b7280";
+    case "expired":
+      return "#9ca3af";
+    default:
+      return "#6b7280";
+  }
+};
+
+const BrandDealsPage: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<"sent" | "accepted" | "completed">(
+    "sent"
+  );
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<"date" | "amount" | "priority">("date");
   const [showFilters, setShowFilters] = useState(false);
-
-  // Modal states
-  const [isNegotiationModalOpen, setIsNegotiationModalOpen] = useState(false);
-  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
-  const [isAcceptModalOpen, setIsAcceptModalOpen] = useState(false);
-  const [isViewDetailsModalOpen, setIsViewDetailsModalOpen] = useState(false);
   const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
-
-  // New state for counter-offer modal
-  const [isCounterOfferModalOpen, setIsCounterOfferModalOpen] = useState(false);
+  const [showCounterOfferModal, setShowCounterOfferModal] = useState(false);
   const [counterOfferAmount, setCounterOfferAmount] = useState("");
   const [counterOfferMessage, setCounterOfferMessage] = useState("");
 
-  // Enhanced filter to include counter-offer and negotiating statuses in pending
-  const filteredDeals = mockDeals.filter((deal) => {
-    if (activeTab === "pending") {
-      return ["pending", "counter_offer", "negotiating"].includes(deal.status);
-    }
-    return deal.status === activeTab;
-  });
+  // Enhanced filter logic
+  const filteredDeals = useMemo(() => {
+    return DUMMY_DEALS.filter((deal) => {
+      if (activeTab === "sent") {
+        return ["sent", "counter_offer", "negotiating"].includes(deal.status);
+      } else if (activeTab === "accepted") {
+        return ["accepted"].includes(deal.status);
+      } else if (activeTab === "completed") {
+        return ["completed"].includes(deal.status);
+      }
+      return false;
+    });
+  }, [activeTab]);
 
-  // Search and sort functionality (unchanged)
+  // Search and sort functionality
   const processedDeals = filteredDeals
     .filter(
       (deal) =>
-        deal.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        deal.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        deal.category.toLowerCase().includes(searchTerm.toLowerCase())
+        deal.influencerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        deal.campaignName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        deal.influencerUsername.toLowerCase().includes(searchTerm.toLowerCase())
     )
     .sort((a, b) => {
       switch (sortBy) {
         case "amount":
-          return (
-            parseInt(b.amount.replace(/[₹,]/g, "")) -
-            parseInt(a.amount.replace(/[₹,]/g, ""))
-          );
+          return b.currentAmount - a.currentAmount;
         case "priority": {
           const priorityOrder = { High: 3, Medium: 2, Low: 1 };
           return priorityOrder[b.priority] - priorityOrder[a.priority];
         }
         default:
           return (
-            new Date(b.createdDate).getTime() -
-            new Date(a.createdDate).getTime()
+            new Date(b.lastActivity).getTime() -
+            new Date(a.lastActivity).getTime()
           );
       }
     });
 
-  // Enhanced modal handlers
-  const handleNegotiateDeal = (deal: Deal) => {
-    setSelectedDeal(deal);
-    setIsNegotiationModalOpen(true);
-  };
+  // Stats calculations
+  const stats = useMemo(() => {
+    const totalDeals = DUMMY_DEALS.length;
+    const sentDeals = DUMMY_DEALS.filter((d) =>
+      ["sent", "counter_offer", "negotiating"].includes(d.status)
+    ).length;
+    const counterOffers = DUMMY_DEALS.filter(
+      (d) => d.status === "counter_offer" || d.status === "negotiating"
+    ).length;
+    const acceptedDeals = DUMMY_DEALS.filter(
+      (d) => d.status === "accepted"
+    ).length;
+    const unreadMessages = DUMMY_DEALS.filter(
+      (d) => d.hasUnreadMessages
+    ).length;
 
-  const handleRejectDeal = (deal: Deal) => {
-    setSelectedDeal(deal);
-    setIsRejectModalOpen(true);
-  };
-
-  const handleAcceptDeal = (deal: Deal) => {
-    setSelectedDeal(deal);
-    setIsAcceptModalOpen(true);
-  };
-
-  const handleViewDetails = (deal: Deal) => {
-    setSelectedDeal(deal);
-    setIsViewDetailsModalOpen(true);
-  };
-
-  // New counter-offer handler
-  const handleCounterOffer = (deal: Deal) => {
-    setSelectedDeal(deal);
-    // Pre-populate with current amount or suggest a middle ground
-    if (deal.counterOffers && deal.counterOffers.length > 0) {
-      // const lastOffer = deal.counterOffers[deal.counterOffers.length - 1];
-      const currentAmount = parseInt(deal.amount.replace(/[₹,]/g, ""));
-      const originalAmount = parseInt(
-        deal.originalAmount?.replace(/[₹,]/g, "") ||
-          deal.amount.replace(/[₹,]/g, "")
-      );
-      const suggestedAmount = Math.round((currentAmount + originalAmount) / 2);
-      setCounterOfferAmount(suggestedAmount.toString());
-    } else {
-      setCounterOfferAmount(deal.amount.replace(/[₹,]/g, ""));
-    }
-    setIsCounterOfferModalOpen(true);
-  };
-
-  // Enhanced negotiation handler
-  interface NegotiationData {
-    amount?: string;
-    message?: string;
-  }
-
-  const handleSubmitNegotiation = async (negotiationData: NegotiationData) => {
-    console.log("Submitting negotiation:", negotiationData);
-    // API call here
-  };
-
-  // New counter-offer submission handler
-  const handleSubmitCounterOffer = async () => {
-    if (!selectedDeal) return;
-
-    const counterOfferData = {
-      dealId: selectedDeal.id,
-      amount: counterOfferAmount,
-      message: counterOfferMessage,
-      fromType: "influencer" as const,
+    return {
+      totalDeals,
+      sentDeals,
+      counterOffers,
+      acceptedDeals,
+      unreadMessages,
     };
+  }, []);
 
-    console.log("Submitting counter offer:", counterOfferData);
-
-    // TODO: API call to submit counter offer
-    // After successful submission:
-    setIsCounterOfferModalOpen(false);
-    setCounterOfferAmount("");
-    setCounterOfferMessage("");
-    setSelectedDeal(null);
+  const getStatusText = (status: Deal["status"]) => {
+    switch (status) {
+      case "sent":
+        return "Sent";
+      case "counter_offer":
+        return "Counter Offer";
+      case "negotiating":
+        return "Negotiating";
+      case "accepted":
+        return "Accepted";
+      case "rejected":
+        return "Rejected";
+      case "completed":
+        return "Completed";
+      case "expired":
+        return "Expired";
+      default:
+        return status;
+    }
   };
 
-  const handleSubmitRejection = async (
-    dealId: string,
-    reason: string,
-    feedback: string
-  ) => {
-    console.log("Rejecting deal:", { dealId, reason, feedback });
-    // API call here
-  };
-
-  // Helper function to get negotiation status text
   const getNegotiationStatusText = (deal: Deal): string => {
     if (deal.status === "counter_offer") {
       return "Counter Offer Received";
@@ -456,19 +415,37 @@ const Deals: React.FC = () => {
     return "";
   };
 
+  const handleCounterOffer = (deal: Deal) => {
+    setSelectedDeal(deal);
+    setCounterOfferAmount(deal.currentAmount.toString());
+    setShowCounterOfferModal(true);
+  };
+
+  const submitCounterOffer = () => {
+    console.log("Counter offer submitted:", {
+      dealId: selectedDeal?.id,
+      amount: counterOfferAmount,
+      message: counterOfferMessage,
+    });
+    setShowCounterOfferModal(false);
+    setCounterOfferAmount("");
+    setCounterOfferMessage("");
+    setSelectedDeal(null);
+  };
+
   return (
     <PageContainer>
-      {/* Header Section (unchanged) */}
+      {/* Header Section */}
       <WrapperBox>
         <HeaderSection>
           <HeaderContent>
             <HeaderLeft>
               <HeaderTitle>
-                <DollarSign size={32} />
-                My Deals
+                <Receipt size={32} />
+                Deals Management
               </HeaderTitle>
               <HeaderSubtitle>
-                Manage your brand collaborations and deals
+                Manage all your deals, negotiate terms, and track performance
               </HeaderSubtitle>
             </HeaderLeft>
             <HeaderActions>
@@ -488,38 +465,95 @@ const Deals: React.FC = () => {
         </HeaderSection>
       </WrapperBox>
 
-      {/* Enhanced Navigation Tabs */}
+      {/* Stats Section */}
+      <WrapperBox>
+        <StatsContainer>
+          <StatCard>
+            <StatIcon>
+              <Receipt size={20} />
+            </StatIcon>
+            <StatContent>
+              <StatValue>{stats.totalDeals}</StatValue>
+              <StatLabel>Total Deals</StatLabel>
+            </StatContent>
+          </StatCard>
+
+          <StatCard>
+            <StatIcon>
+              <Send size={20} />
+            </StatIcon>
+            <StatContent>
+              <StatValue>{stats.sentDeals}</StatValue>
+              <StatLabel>Pending</StatLabel>
+            </StatContent>
+          </StatCard>
+
+          <StatCard highlight>
+            <StatIcon>
+              <ArrowRightLeft size={20} />
+            </StatIcon>
+            <StatContent>
+              <StatValue>{stats.counterOffers}</StatValue>
+              <StatLabel>Counter Offers</StatLabel>
+            </StatContent>
+          </StatCard>
+
+          <StatCard>
+            <StatIcon>
+              <CheckCircle size={20} />
+            </StatIcon>
+            <StatContent>
+              <StatValue>{stats.acceptedDeals}</StatValue>
+              <StatLabel>Accepted</StatLabel>
+            </StatContent>
+          </StatCard>
+
+          {stats.unreadMessages > 0 && (
+            <StatCard urgent>
+              <StatIcon>
+                <MessageSquare size={20} />
+              </StatIcon>
+              <StatContent>
+                <StatValue>{stats.unreadMessages}</StatValue>
+                <StatLabel>Unread Messages</StatLabel>
+              </StatContent>
+            </StatCard>
+          )}
+        </StatsContainer>
+      </WrapperBox>
+
+      {/* Navigation Tabs */}
       <WrapperBox>
         <TabsContainer>
           <TabContainer>
             <TabButton
-              active={activeTab === "pending"}
-              onClick={() => setActiveTab("pending")}
+              active={activeTab === "sent"}
+              onClick={() => setActiveTab("sent")}
             >
               <Clock size={18} />
               Pending Deals (
               {
-                mockDeals.filter((d) =>
-                  ["pending", "counter_offer", "negotiating"].includes(d.status)
+                DUMMY_DEALS.filter((d) =>
+                  ["sent", "counter_offer", "negotiating"].includes(d.status)
                 ).length
               }
               )
             </TabButton>
             <TabButton
-              active={activeTab === "active"}
-              onClick={() => setActiveTab("active")}
+              active={activeTab === "accepted"}
+              onClick={() => setActiveTab("accepted")}
             >
-              <Play size={18} />
-              Active Deals (
-              {mockDeals.filter((d) => d.status === "active").length})
+              <CheckCircle size={18} />
+              Accepted Deals (
+              {DUMMY_DEALS.filter((d) => d.status === "accepted").length})
             </TabButton>
             <TabButton
               active={activeTab === "completed"}
               onClick={() => setActiveTab("completed")}
             >
-              <CheckCircle size={18} />
+              <Check size={18} />
               Completed Deals (
-              {mockDeals.filter((d) => d.status === "completed").length})
+              {DUMMY_DEALS.filter((d) => d.status === "completed").length})
             </TabButton>
           </TabContainer>
 
@@ -551,16 +585,16 @@ const Deals: React.FC = () => {
           <WrapperBox>
             <EmptyState>
               <EmptyStateIcon>
-                {activeTab === "pending" && <Clock size={48} />}
-                {activeTab === "active" && <Play size={48} />}
-                {activeTab === "completed" && <CheckCircle size={48} />}
+                {activeTab === "sent" && <Clock size={48} />}
+                {activeTab === "accepted" && <CheckCircle size={48} />}
+                {activeTab === "completed" && <Check size={48} />}
               </EmptyStateIcon>
               <EmptyStateTitle>No {activeTab} deals found</EmptyStateTitle>
               <EmptyStateDescription>
-                {activeTab === "pending" &&
+                {activeTab === "sent" &&
                   "You don't have any pending deals at the moment."}
-                {activeTab === "active" &&
-                  "No active deals to work on right now."}
+                {activeTab === "accepted" &&
+                  "No accepted deals to track right now."}
                 {activeTab === "completed" &&
                   "You haven't completed any deals yet."}
               </EmptyStateDescription>
@@ -571,58 +605,65 @@ const Deals: React.FC = () => {
             {processedDeals.map((deal) => (
               <DealCard key={deal.id} status={deal.status}>
                 <DealHeader>
-                  <BrandInfo>
-                    <BrandAvatar>
-                      <BrandLogo src={deal.brandLogo} alt={deal.brand} />
-                    </BrandAvatar>
-                    <BrandDetails>
-                      <BrandName>{deal.brand}</BrandName>
-                      <DealTitle>{deal.title}</DealTitle>
-                    </BrandDetails>
-                  </BrandInfo>
+                  <InfluencerInfo>
+                    <InfluencerAvatar>
+                      <InfluencerImage
+                        src={deal.influencerImage}
+                        alt={deal.influencerName}
+                      />
+                    </InfluencerAvatar>
+                    <InfluencerDetails>
+                      <InfluencerName>{deal.influencerName}</InfluencerName>
+                      <InfluencerUsername>
+                        {deal.influencerUsername}
+                      </InfluencerUsername>
+                      <InfluencerStats>
+                        {(deal.influencerFollowers / 1000).toFixed(0)}K
+                        followers
+                        {deal.influencerRating && (
+                          <RatingDisplay>
+                            <Star size={12} fill="#fbbf24" color="#fbbf24" />
+                            {deal.influencerRating}
+                          </RatingDisplay>
+                        )}
+                      </InfluencerStats>
+                    </InfluencerDetails>
+                  </InfluencerInfo>
                   <DealAmountSection>
-                    {/* Enhanced amount display for counter-offers */}
-                    {deal.originalAmount &&
-                    deal.originalAmount !== deal.amount ? (
+                    {deal.currentAmount !== deal.originalAmount ? (
                       <AmountComparison>
                         <OriginalAmount>
-                          ₹
-                          {deal.originalAmount
-                            .replace(/[₹,]/g, "")
-                            .replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,")}
+                          ₹{deal.originalAmount.toLocaleString()}
                         </OriginalAmount>
-                        <CurrentAmount>{deal.amount}</CurrentAmount>
+                        <CurrentAmount>
+                          ₹{deal.currentAmount.toLocaleString()}
+                        </CurrentAmount>
                         <AmountChange
-                          increase={
-                            parseInt(deal.amount.replace(/[₹,]/g, "")) >
-                            parseInt(deal.originalAmount.replace(/[₹,]/g, ""))
-                          }
+                          increase={deal.currentAmount > deal.originalAmount}
                         >
-                          {parseInt(deal.amount.replace(/[₹,]/g, "")) >
-                          parseInt(deal.originalAmount.replace(/[₹,]/g, "")) ? (
+                          {deal.currentAmount > deal.originalAmount ? (
                             <TrendingUp size={14} />
                           ) : (
                             <TrendingDown size={14} />
                           )}
                           {Math.abs(
-                            ((parseInt(deal.amount.replace(/[₹,]/g, "")) -
-                              parseInt(
-                                deal.originalAmount.replace(/[₹,]/g, "")
-                              )) /
-                              parseInt(
-                                deal.originalAmount.replace(/[₹,]/g, "")
-                              )) *
+                            ((deal.currentAmount - deal.originalAmount) /
+                              deal.originalAmount) *
                               100
                           ).toFixed(0)}
                           %
                         </AmountChange>
                       </AmountComparison>
                     ) : (
-                      <DealAmount>{deal.amount}</DealAmount>
+                      <DealAmount>
+                        ₹{deal.currentAmount.toLocaleString()}
+                      </DealAmount>
                     )}
                     {deal.hasUnreadMessages && <UnreadBadge />}
                   </DealAmountSection>
                 </DealHeader>
+
+                <CampaignTitle>{deal.campaignName}</CampaignTitle>
 
                 {/* Enhanced status indicator for negotiations */}
                 {(deal.status === "counter_offer" ||
@@ -639,7 +680,8 @@ const Deals: React.FC = () => {
                     <StatusText>{getNegotiationStatusText(deal)}</StatusText>
                     {deal.lastActivity && (
                       <LastActivity>
-                        Last activity: {deal.lastActivity}
+                        Last activity:{" "}
+                        {new Date(deal.lastActivity).toLocaleDateString()}
                       </LastActivity>
                     )}
                   </NegotiationStatus>
@@ -653,9 +695,11 @@ const Deals: React.FC = () => {
                       <PreviewItem key={offer.id} fromType={offer.fromType}>
                         <PreviewHeader>
                           <span>
-                            {offer.fromType === "brand" ? deal.brand : "You"}
+                            {offer.fromType === "brand"
+                              ? "You"
+                              : deal.influencerName}
                           </span>
-                          <span>{offer.amount}</span>
+                          <span>₹{offer.amount.toLocaleString()}</span>
                         </PreviewHeader>
                         <PreviewMessage>{offer.message}</PreviewMessage>
                       </PreviewItem>
@@ -668,10 +712,16 @@ const Deals: React.FC = () => {
                     <Calendar size={14} />
                     <MetaText>
                       {activeTab === "completed"
-                        ? `Completed: ${deal.completedDate}`
-                        : activeTab === "active"
-                        ? `Due: ${deal.deadline}`
-                        : `Received: ${deal.createdDate}`}
+                        ? `Completed: ${new Date(
+                            deal.lastActivity
+                          ).toLocaleDateString()}`
+                        : activeTab === "accepted"
+                        ? `Accepted: ${new Date(
+                            deal.lastActivity
+                          ).toLocaleDateString()}`
+                        : `Sent: ${new Date(
+                            deal.sentDate
+                          ).toLocaleDateString()}`}
                     </MetaText>
                   </MetaItem>
                   {deal.location && (
@@ -683,12 +733,21 @@ const Deals: React.FC = () => {
                   <PriorityTag priority={deal.priority}>
                     {deal.priority} Priority
                   </PriorityTag>
-                  {!deal.isNegotiable && (
-                    <NonNegotiableTag>Non-negotiable</NonNegotiableTag>
-                  )}
+                  <StatusBadge status={deal.status}>
+                    {deal.status === "counter_offer" && (
+                      <ArrowRightLeft size={12} />
+                    )}
+                    {deal.status === "sent" && <Send size={12} />}
+                    {deal.status === "accepted" && <Check size={12} />}
+                    {deal.status === "rejected" && <X size={12} />}
+                    {deal.status === "negotiating" && (
+                      <MessageSquare size={12} />
+                    )}
+                    {deal.status === "completed" && <CheckCircle size={12} />}
+                    {deal.status === "expired" && <Clock size={12} />}
+                    {getStatusText(deal.status)}
+                  </StatusBadge>
                 </DealMeta>
-
-                <DealDescription>{deal.description}</DealDescription>
 
                 <DeliverablesSection>
                   <SectionTitle>Deliverables</SectionTitle>
@@ -699,149 +758,55 @@ const Deals: React.FC = () => {
                   </DeliverablesList>
                 </DeliverablesSection>
 
-                {deal.engagement && (
-                  <EngagementSection>
-                    <SectionTitle>Performance</SectionTitle>
-                    <EngagementGrid>
-                      <EngagementStat>
-                        <Eye size={16} />
-                        <StatValue>
-                          {deal.engagement.likes?.toLocaleString()}
-                        </StatValue>
-                        <StatLabel>Likes</StatLabel>
-                      </EngagementStat>
-                      <EngagementStat>
-                        <MessageSquare size={16} />
-                        <StatValue>{deal.engagement.comments}</StatValue>
-                        <StatLabel>Comments</StatLabel>
-                      </EngagementStat>
-                      <EngagementStat>
-                        <ArrowUpDown size={16} />
-                        <StatValue>{deal.engagement.shares}</StatValue>
-                        <StatLabel>Shares</StatLabel>
-                      </EngagementStat>
-                    </EngagementGrid>
-                  </EngagementSection>
-                )}
-
-                {deal.rating && (
-                  <RatingSection>
-                    <RatingHeader>
-                      <SectionTitle>Brand Rating</SectionTitle>
-                      <RatingDisplay>
-                        <RatingStars>
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              size={16}
-                              fill={
-                                i < Math.floor(deal.rating!)
-                                  ? "#fbbf24"
-                                  : "none"
-                              }
-                              color="#fbbf24"
-                            />
-                          ))}
-                        </RatingStars>
-                        <RatingValue>{deal.rating}/5</RatingValue>
-                      </RatingDisplay>
-                    </RatingHeader>
-                    {deal.feedback && (
-                      <FeedbackText>"{deal.feedback}"</FeedbackText>
-                    )}
-                  </RatingSection>
-                )}
-
-                {/* Enhanced Deal Actions with counter-offer support */}
                 <DealActions>
-                  {activeTab === "pending" && deal.status === "pending" && (
+                  {activeTab === "sent" && deal.status === "sent" && (
                     <>
-                      <ActionButton
-                        variant="primary"
-                        onClick={() => handleAcceptDeal(deal)}
-                      >
-                        <CheckCircle size={16} />
-                        Accept
+                      <ActionButton variant="secondary">
+                        <MessageSquare size={16} />
+                        Message
                       </ActionButton>
-                      {deal.isNegotiable && (
-                        <ActionButton
-                          variant="secondary"
-                          onClick={() => handleNegotiateDeal(deal)}
-                        >
-                          <Handshake size={16} />
-                          Negotiate
-                        </ActionButton>
-                      )}
-                      <ActionButton
-                        variant="secondary"
-                        onClick={() => handleViewDetails(deal)}
-                      >
+                      <ActionButton variant="secondary">
                         <Eye size={16} />
-                        View
-                      </ActionButton>
-                      <ActionButton
-                        variant="secondary"
-                        onClick={() => handleRejectDeal(deal)}
-                      >
-                        <X size={16} />
-                        Reject
+                        View Details
                       </ActionButton>
                     </>
                   )}
 
-                  {/* New actions for counter-offer scenarios */}
-                  {activeTab === "pending" &&
+                  {activeTab === "sent" &&
                     (deal.status === "counter_offer" ||
                       deal.status === "negotiating") && (
                       <>
                         <ActionButton
                           variant="primary"
-                          onClick={() => handleAcceptDeal(deal)}
-                        >
-                          <CheckCircle size={16} />
-                          Accept
-                        </ActionButton>
-                        <ActionButton
-                          variant="negotiation"
                           onClick={() => handleCounterOffer(deal)}
                         >
                           <ArrowRightLeft size={16} />
-                          Counter
+                          Counter Offer
                         </ActionButton>
-                        <ActionButton
-                          variant="secondary"
-                          onClick={() => handleViewDetails(deal)}
-                        >
+                        <ActionButton variant="secondary">
+                          <MessageSquare size={16} />
+                          View Negotiation
+                        </ActionButton>
+                        <ActionButton variant="secondary">
                           <Eye size={16} />
-                          View
-                        </ActionButton>
-                        <ActionButton
-                          variant="secondary"
-                          onClick={() => handleRejectDeal(deal)}
-                        >
-                          <X size={16} />
-                          Decline
+                          View Details
                         </ActionButton>
                       </>
                     )}
 
-                  {activeTab === "active" && (
+                  {activeTab === "accepted" && (
                     <>
-                      <ActionButton
-                        variant="primary"
-                        onClick={() => {
-                          navigate(`/submitContent/8`);
-                        }}
-                      >
-                        <Bell size={16} />
-                        Submit
+                      <ActionButton variant="primary">
+                        <CheckCircle size={16} />
+                        Track Progress
                       </ActionButton>
                       <ActionButton variant="secondary">
-                        <Bookmark size={16} />
-                        View Requirements
+                        <MessageSquare size={16} />
+                        Message
                       </ActionButton>
                     </>
                   )}
+
                   {activeTab === "completed" && (
                     <>
                       <ActionButton variant="secondary">
@@ -861,44 +826,16 @@ const Deals: React.FC = () => {
         )}
       </DealsSection>
 
-      {/* Enhanced Modals */}
-      <NegotiationModal
-        isOpen={isNegotiationModalOpen}
-        onClose={() => setIsNegotiationModalOpen(false)}
-        deal={selectedDeal}
-        onSubmitNegotiation={handleSubmitNegotiation}
-      />
-
-      <RejectDealModal
-        isOpen={isRejectModalOpen}
-        onClose={() => setIsRejectModalOpen(false)}
-        deal={selectedDeal}
-        onRejectDeal={handleSubmitRejection}
-      />
-
-      <AcceptDealModal
-        isOpen={isAcceptModalOpen}
-        onClose={() => setIsAcceptModalOpen(false)}
-        deal={selectedDeal}
-        onAcceptDeal={() => {}}
-      />
-
-      <ViewDetailsModal
-        isOpen={isViewDetailsModalOpen}
-        onClose={() => setIsViewDetailsModalOpen(false)}
-        deal={selectedDeal}
-      />
-
-      {/* New Counter Offer Modal */}
-      {isCounterOfferModalOpen && selectedDeal && (
-        <ModalOverlay onClick={() => setIsCounterOfferModalOpen(false)}>
+      {/* Counter Offer Modal */}
+      {showCounterOfferModal && selectedDeal && (
+        <ModalOverlay onClick={() => setShowCounterOfferModal(false)}>
           <ModalContent onClick={(e) => e.stopPropagation()}>
             <ModalHeader>
               <ModalTitle>
                 <ArrowRightLeft size={24} />
                 Send Counter Offer
               </ModalTitle>
-              <CloseButton onClick={() => setIsCounterOfferModalOpen(false)}>
+              <CloseButton onClick={() => setShowCounterOfferModal(false)}>
                 <X size={20} />
               </CloseButton>
             </ModalHeader>
@@ -907,43 +844,39 @@ const Deals: React.FC = () => {
               <DealSummary>
                 <DealSummaryTitle>Deal Summary</DealSummaryTitle>
                 <SummaryRow>
-                  <span>Brand:</span>
-                  <span>{selectedDeal.brand}</span>
+                  <span>Influencer:</span>
+                  <span>{selectedDeal.influencerName}</span>
                 </SummaryRow>
                 <SummaryRow>
                   <span>Campaign:</span>
-                  <span>{selectedDeal.title}</span>
+                  <span>{selectedDeal.campaignName}</span>
                 </SummaryRow>
                 <SummaryRow>
-                  <span>Their Current Offer:</span>
-                  <span>{selectedDeal.amount}</span>
+                  <span>Original Amount:</span>
+                  <span>₹{selectedDeal.originalAmount.toLocaleString()}</span>
                 </SummaryRow>
-                {selectedDeal.originalAmount && (
-                  <SummaryRow>
-                    <span>Original Offer:</span>
-                    <span>{selectedDeal.originalAmount}</span>
-                  </SummaryRow>
-                )}
                 <SummaryRow>
-                  <span>Deliverables:</span>
-                  <span>{selectedDeal.deliverables.join(", ")}</span>
+                  <span>Their Offer:</span>
+                  <span>₹{selectedDeal.currentAmount.toLocaleString()}</span>
                 </SummaryRow>
               </DealSummary>
 
-              {/* Negotiation History */}
+              {/* Previous Counter Offers */}
               {selectedDeal.counterOffers &&
                 selectedDeal.counterOffers.length > 0 && (
-                  <NegotiationHistory>
+                  <CounterOfferHistory>
                     <HistoryTitle>Negotiation History</HistoryTitle>
                     {selectedDeal.counterOffers.map((offer) => (
                       <HistoryItem key={offer.id} fromType={offer.fromType}>
                         <HistoryHeader>
                           <HistoryUser>
                             {offer.fromType === "brand"
-                              ? selectedDeal.brand
-                              : "You"}
+                              ? "You"
+                              : selectedDeal.influencerName}
                           </HistoryUser>
-                          <HistoryAmount>{offer.amount}</HistoryAmount>
+                          <HistoryAmount>
+                            ₹{offer.amount.toLocaleString()}
+                          </HistoryAmount>
                           <HistoryTime>
                             {new Date(offer.timestamp).toLocaleDateString()}
                           </HistoryTime>
@@ -951,7 +884,7 @@ const Deals: React.FC = () => {
                         <HistoryMessage>{offer.message}</HistoryMessage>
                       </HistoryItem>
                     ))}
-                  </NegotiationHistory>
+                  </CounterOfferHistory>
                 )}
 
               <FormSection>
@@ -978,10 +911,10 @@ const Deals: React.FC = () => {
             </ModalBody>
 
             <ModalFooter>
-              <CancelButton onClick={() => setIsCounterOfferModalOpen(false)}>
+              <CancelButton onClick={() => setShowCounterOfferModal(false)}>
                 Cancel
               </CancelButton>
-              <SubmitButton onClick={handleSubmitCounterOffer}>
+              <SubmitButton onClick={submitCounterOffer}>
                 <Send size={16} />
                 Send Counter Offer
               </SubmitButton>
@@ -993,9 +926,7 @@ const Deals: React.FC = () => {
   );
 };
 
-// Enhanced Styled Components
-
-// All existing styled components remain unchanged...
+// Styled Components using the same structure as influencer deals
 const PageContainer = styled.div`
   min-height: 100vh;
   background-color: #f9fafb;
@@ -1010,7 +941,7 @@ const PageContainer = styled.div`
   }
 `;
 
-// Header Styles (unchanged)
+// Header Styles
 const HeaderSection = styled.div`
   width: 100%;
 `;
@@ -1096,7 +1027,79 @@ const SearchInput = styled.input`
   }
 `;
 
-// Tabs Styles (unchanged)
+// Stats Styles
+const StatsContainer = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+`;
+
+const StatCard = styled.div<{ highlight?: boolean; urgent?: boolean }>`
+  background: white;
+  border: 1px solid
+    ${({ highlight }) =>
+      highlight ? "#f59e0b" : ({ urgent }) => (urgent ? "#ef4444" : "#e5e7eb")};
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+  ${({ highlight }) =>
+    highlight &&
+    `
+    background: linear-gradient(135deg, #fef3c7 0%, #fbbf24 100%);
+    border-color: #f59e0b;
+  `}
+
+  ${({ urgent }) =>
+    urgent &&
+    `
+    background: linear-gradient(135deg, #fecaca 0%, #ef4444 100%);
+    border-color: #ef4444;
+    animation: pulse 2s infinite;
+  `}
+
+  @keyframes pulse {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.02);
+    }
+  }
+`;
+
+const StatIcon = styled.div`
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const StatContent = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+const StatValue = styled.div`
+  font-size: ${sharedTheme.typography.fontSizes.xxl};
+  font-weight: ${sharedTheme.typography.fontWeights.bold};
+  color: white;
+`;
+
+const StatLabel = styled.div`
+  font-size: ${sharedTheme.typography.fontSizes.sm};
+  color: rgba(255, 255, 255, 0.8);
+`;
+
+// Tabs Styles
 const TabsContainer = styled.div`
   display: flex;
   justify-content: space-between;
@@ -1207,7 +1210,7 @@ const SortSelect = styled.select`
   }
 `;
 
-// Content Styles (unchanged)
+// Content Styles
 const DealsSection = styled.div`
   flex: 1;
 `;
@@ -1299,13 +1302,13 @@ const DealHeader = styled.div`
   margin-bottom: ${sharedTheme.spacing.md};
 `;
 
-const BrandInfo = styled.div`
+const InfluencerInfo = styled.div`
   display: flex;
   gap: ${sharedTheme.spacing.sm};
   flex: 1;
 `;
 
-const BrandAvatar = styled.div`
+const InfluencerAvatar = styled.div`
   width: 48px;
   height: 48px;
   border-radius: ${sharedTheme.borderRadius.md};
@@ -1313,30 +1316,43 @@ const BrandAvatar = styled.div`
   border: 2px solid #e5e7eb;
 `;
 
-const BrandLogo = styled.img`
+const InfluencerImage = styled.img`
   width: 100%;
   height: 100%;
   object-fit: cover;
 `;
 
-const BrandDetails = styled.div`
+const InfluencerDetails = styled.div`
   flex: 1;
   min-width: 0;
 `;
 
-const BrandName = styled.div`
+const InfluencerName = styled.div`
+  font-size: ${sharedTheme.typography.fontSizes.md};
+  font-weight: ${sharedTheme.typography.fontWeights.semibold};
+  color: ${"#1E3A8A"};
+  margin-bottom: 0.25rem;
+`;
+
+const InfluencerUsername = styled.div`
   font-size: ${sharedTheme.typography.fontSizes.sm};
   color: ${sharedTheme.colorVariants.secondary.light};
   margin-bottom: 0.25rem;
-  font-weight: ${sharedTheme.typography.fontWeights.medium};
 `;
 
-const DealTitle = styled.h3`
-  font-size: ${sharedTheme.typography.fontSizes.lg};
-  font-weight: ${sharedTheme.typography.fontWeights.semibold};
-  color: ${"#1E3A8A"};
-  margin: 0;
-  line-height: 1.4;
+const InfluencerStats = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: ${sharedTheme.typography.fontSizes.xs};
+  color: ${sharedTheme.colorVariants.secondary.light};
+`;
+
+const RatingDisplay = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: 0.5rem;
 `;
 
 // Enhanced Amount Display Components
@@ -1390,6 +1406,13 @@ const UnreadBadge = styled.div`
   background: #ef4444;
   border-radius: 50%;
   animation: pulse 2s infinite;
+`;
+
+const CampaignTitle = styled.h3`
+  font-size: ${sharedTheme.typography.fontSizes.lg};
+  font-weight: ${sharedTheme.typography.fontWeights.semibold};
+  color: ${"#1E3A8A"};
+  margin: 0 0 1rem 0;
 `;
 
 // New Negotiation Status Components
@@ -1488,22 +1511,19 @@ const PriorityTag = styled.span<{ priority: string }>`
   color: ${(props) => getPriorityColor(props.priority)};
 `;
 
-// New Non-negotiable Tag
-const NonNegotiableTag = styled.span`
+const StatusBadge = styled.div<{ status: Deal["status"] }>`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   padding: 0.25rem 0.5rem;
   border-radius: ${sharedTheme.borderRadius.sm};
   font-size: ${sharedTheme.typography.fontSizes.xs};
   font-weight: ${sharedTheme.typography.fontWeights.medium};
-  background-color: #6b728020;
-  color: #6b7280;
-  border: 1px solid #6b728040;
-`;
-
-const DealDescription = styled.p`
-  color: ${sharedTheme.colorVariants.secondary.light};
-  font-size: ${sharedTheme.typography.fontSizes.sm};
-  line-height: 1.5;
-  margin: 0 0 ${sharedTheme.spacing.md} 0;
+  color: ${({ status }) => getStatusColor(status)};
+  background: ${({ status }) => `${getStatusColor(status)}20`};
+  border: 1px solid ${({ status }) => `${getStatusColor(status)}40`};
+  text-transform: capitalize;
+  white-space: nowrap;
 `;
 
 const DeliverablesSection = styled.div`
@@ -1533,82 +1553,6 @@ const DeliverableTag = styled.span`
   border: 1px solid #1e3a8a20;
 `;
 
-const EngagementSection = styled.div`
-  margin-bottom: ${sharedTheme.spacing.md};
-`;
-
-const EngagementGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: ${sharedTheme.spacing.sm};
-`;
-
-const EngagementStat = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: ${sharedTheme.spacing.sm};
-  background: #f3f4f6;
-  border-radius: ${sharedTheme.borderRadius.md};
-  text-align: center;
-`;
-
-const StatValue = styled.div`
-  font-size: ${sharedTheme.typography.fontSizes.md};
-  font-weight: ${sharedTheme.typography.fontWeights.bold};
-  color: ${"#1E3A8A"};
-  margin: 0.25rem 0;
-`;
-
-const StatLabel = styled.div`
-  font-size: ${sharedTheme.typography.fontSizes.xs};
-  color: ${sharedTheme.colorVariants.secondary.light};
-  font-weight: ${sharedTheme.typography.fontWeights.medium};
-`;
-
-const RatingSection = styled.div`
-  margin-bottom: ${sharedTheme.spacing.md};
-  padding: ${sharedTheme.spacing.md};
-  background: #f3f4f6;
-  border-radius: ${sharedTheme.borderRadius.md};
-`;
-
-const RatingHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: ${sharedTheme.spacing.sm};
-`;
-
-const RatingDisplay = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-`;
-
-const RatingStars = styled.div`
-  display: flex;
-  gap: 0.125rem;
-`;
-
-const RatingValue = styled.span`
-  font-size: ${sharedTheme.typography.fontSizes.sm};
-  font-weight: ${sharedTheme.typography.fontWeights.bold};
-  color: ${"#1E3A8A"};
-`;
-
-const FeedbackText = styled.p`
-  font-size: ${sharedTheme.typography.fontSizes.sm};
-  color: ${sharedTheme.colorVariants.secondary.light};
-  font-style: italic;
-  margin: 0;
-  line-height: 1.4;
-  background: white;
-  padding: ${sharedTheme.spacing.sm};
-  border-radius: ${sharedTheme.borderRadius.sm};
-  border-left: 3px solid #1e3a8a;
-`;
-
 const DealActions = styled.div`
   display: flex;
   gap: ${sharedTheme.spacing.sm};
@@ -1619,10 +1563,7 @@ const DealActions = styled.div`
   }
 `;
 
-// Enhanced Action Button with negotiation variant
-const ActionButton = styled.button<{
-  variant: "primary" | "secondary" | "negotiation";
-}>`
+const ActionButton = styled.button<{ variant: "primary" | "secondary" }>`
   flex: 1;
   display: flex;
   align-items: center;
@@ -1630,24 +1571,9 @@ const ActionButton = styled.button<{
   gap: 0.5rem;
   padding: ${sharedTheme.spacing.sm};
   border: 1px solid
-    ${(props) =>
-      props.variant === "primary"
-        ? "#1E3A8A"
-        : props.variant === "negotiation"
-        ? "#f59e0b"
-        : "#1E3A8A"};
-  background: ${(props) =>
-    props.variant === "primary"
-      ? "#1E3A8A"
-      : props.variant === "negotiation"
-      ? "#f59e0b"
-      : "white"};
-  color: ${(props) =>
-    props.variant === "primary"
-      ? "white"
-      : props.variant === "negotiation"
-      ? "white"
-      : "#1E3A8A"};
+    ${(props) => (props.variant === "primary" ? "#1E3A8A" : "#1E3A8A")};
+  background: ${(props) => (props.variant === "primary" ? "#1E3A8A" : "white")};
+  color: ${(props) => (props.variant === "primary" ? "white" : "#1E3A8A")};
   border-radius: ${sharedTheme.borderRadius.md};
   font-size: ${sharedTheme.typography.fontSizes.sm};
   font-weight: ${sharedTheme.typography.fontWeights.medium};
@@ -1656,16 +1582,10 @@ const ActionButton = styled.button<{
 
   &:hover {
     background: ${(props) =>
-      props.variant === "primary"
-        ? "#1E3A8A"
-        : props.variant === "negotiation"
-        ? "#d97706"
-        : "#f3f4f6"};
+      props.variant === "primary" ? "#1E3A8A" : "#f3f4f6"};
     border-color: ${(props) =>
       props.variant === "primary"
         ? "#1E3A8A"
-        : props.variant === "negotiation"
-        ? "#d97706"
         : sharedTheme.colorVariants.secondary.light};
     transform: translateY(-1px);
     box-shadow: ${sharedTheme.shadows.sm};
@@ -1676,7 +1596,7 @@ const ActionButton = styled.button<{
   }
 `;
 
-// New Modal Styles for Counter Offer
+// Modal Styles
 const ModalOverlay = styled.div`
   position: fixed;
   top: 0;
@@ -1773,7 +1693,7 @@ const SummaryRow = styled.div`
   }
 `;
 
-const NegotiationHistory = styled.div`
+const CounterOfferHistory = styled.div`
   margin-bottom: 1.5rem;
 `;
 
@@ -1912,9 +1832,9 @@ const SubmitButton = styled.button`
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  border: 1px solid #f59e0b;
+  border: 1px solid #3b82f6;
   border-radius: 6px;
-  background: #f59e0b;
+  background: #3b82f6;
   color: white;
   font-size: ${sharedTheme.typography.fontSizes.sm};
   font-weight: ${sharedTheme.typography.fontWeights.medium};
@@ -1922,8 +1842,8 @@ const SubmitButton = styled.button`
   transition: all 0.2s ease;
 
   &:hover {
-    background: #d97706;
+    background: #2563eb;
   }
 `;
 
-export default Deals;
+export default BrandDealsPage;

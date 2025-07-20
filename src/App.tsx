@@ -20,6 +20,7 @@ import InfluencerDiscoveryPage from "./pages/brand/Campaign/Brand Campaign/Influ
 import BulkDealsPage from "./pages/brand/Deal/BulkDeal/BulkDeal";
 import CustomDealsPage from "./pages/brand/Deal/CustomDeal/CustomDeal";
 import Deals from "./pages/influencer/Deal/Deals";
+import BrandDealsPage from "./pages/brand/Deal/Deal/BrandDeal";
 
 // const Dashboard = () => <div>Analytics Page</div>;
 // const Settings = () => <div>Settings Page</div>;
@@ -106,6 +107,14 @@ const App = () => {
           element={
             <DashboardLayout>
               <Deals />
+            </DashboardLayout>
+          }
+        />
+        <Route
+          path="/brandDeals"
+          element={
+            <DashboardLayout>
+              <BrandDealsPage />
             </DashboardLayout>
           }
         />

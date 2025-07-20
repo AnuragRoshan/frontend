@@ -30,6 +30,7 @@ import { useSelection } from "./Brand Campaign/hooks/customHook";
 
 // Type imports
 import { Campaign, ViewMode } from "./Brand Campaign/types/campaign.types";
+import { useNavigate } from "react-router-dom";
 
 const CampaignsPage: React.FC = () => {
   // const navigate = useNavigate();
@@ -49,6 +50,8 @@ const CampaignsPage: React.FC = () => {
 
   const { currentPage, totalPages, handlePageChange, paginatedItems } =
     usePagination(filteredCampaigns, 10);
+
+  const navigate = useNavigate();
 
   const {
     selectedItems: selectedCampaigns,
@@ -139,7 +142,7 @@ const CampaignsPage: React.FC = () => {
 
     // Navigate to influencer discovery page with campaign context
     // router.push(`/brand/campaigns/${campaign.id}/influencer-discovery`);
-
+    navigate("/brand/campaigns/:campaignId/influencer-discovery");
     console.log("Navigating to Send Deals for:", campaign.name);
   };
 
