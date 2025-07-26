@@ -63,7 +63,7 @@ const Home = () => {
             />
           </BannerLeft>
           <BannerRight>
-            <WelcomeText>Hey Anurag, Welcome to Creator Hub!</WelcomeText>
+            <WelcomeText>Hey Anurag, Welcome to Vibeco !</WelcomeText>
             <SubText>
               Empower your influence. Track your growth, manage campaigns, and
               unlock new opportunities — all in one place.

@@ -910,7 +910,7 @@ const ModernLandingPage: React.FC = () => {
         <Nav>
           <Logo>
             <Sparkles size={24} />
-            CreatorHub
+            Vibeco
           </Logo>
 
           <NavLinks isOpen={isMobileMenuOpen}>
@@ -988,7 +988,7 @@ const ModernLandingPage: React.FC = () => {
               <HeroImage>
                 <DashboardPreview
                   src="https://ik.imagekit.io/i3divn77k/MVP/Screenshot%202025-05-26%20at%201.51.12%E2%80%AFAM.png?updatedAt=1748204540499"
-                  alt="CreatorHub Dashboard"
+                  alt="Vibeco Dashboard"
                 />
 
                 <FloatingCard position="top: 20px; left: 20px;" delay={0}>
@@ -1076,7 +1076,7 @@ const ModernLandingPage: React.FC = () => {
           <FooterSection>
             <Logo>
               <Sparkles size={24} />
-              CreatorHub
+              Vibeco
             </Logo>
             <FooterDescription>
               Empowering creators to connect with brands and grow their
@@ -1155,7 +1155,7 @@ const ModernLandingPage: React.FC = () => {
 
         <FooterBottom>
           <Copyright>
-            &copy; {new Date().getFullYear()} CreatorHub. All rights reserved.
+            &copy; {new Date().getFullYear()} Vibeco. All rights reserved.
           </Copyright>
         </FooterBottom>
       </Footer>

@@ -53,10 +53,7 @@ const LoginInfluencer = () => {
   return (
     <Background>
       <AuthCard>
-        <Title>
-          Hey Champ ! <br />
-          Sign in with email
-        </Title>
+        <Title>Sign in to Vibeco</Title>
         <Subtitle>Manage your campaigns and insights with ease.</Subtitle>
         <div
           style={{
@@ -155,6 +152,7 @@ const Subtitle = styled.div`
   font-size: ${sharedTheme.typography.fontSizes.sm};
   color: ${sharedTheme.colorVariants.secondary.light};
   margin-top: -${sharedTheme.spacing.xs};
+
   text-align: center;
 `;
 

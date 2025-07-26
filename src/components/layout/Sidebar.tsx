@@ -224,7 +224,7 @@ const Sidebar = () => {
               whiteSpace: "nowrap",
             }}
           >
-            CreatorHub
+            Vibeco
           </div>
         )}
         <button
