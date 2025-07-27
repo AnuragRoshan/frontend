@@ -188,11 +188,11 @@ const Sidebar = () => {
       to: "/logout",
       label: "Logout",
       icon: LogOutIcon,
-      userType: "influencer",
+      userType: "all",
     },
   ];
 
-  const userType: "influencer" | "brand" = "brand"; // This should be dynamically set based on the logged-in user
+  const userType: "influencer" | "brand" = "influencer"; // This should be dynamically set based on the logged-in user
 
   // Filter nav items based on userType
   const filteredNavItems = navItems.filter((item) => {
