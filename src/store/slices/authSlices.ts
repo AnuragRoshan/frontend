@@ -1,4 +1,4 @@
-// src/store/slices/authSlice.ts
+// src/store/slices/authSlices.ts - Updated logout section
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { authApi, User, TokenPair } from "../api/authApi";
 
@@ -32,6 +32,10 @@ const saveAuthState = (state: Partial<AuthState>): void => {
 const clearAuthState = (): void => {
   try {
     localStorage.removeItem("auth");
+    // Also clear any other auth-related items
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user");
   } catch (error) {
     console.error("Error removing auth state from localStorage:", error);
   }
@@ -121,7 +125,7 @@ const authSlice = createSlice({
     },
 
     // Set error
-    setError: (state, action: PayloadAction<string | null>) => {
+    setError: (state, action: PayloadAction<string>) => {
       state.error = action.payload;
     },
 
@@ -130,7 +134,7 @@ const authSlice = createSlice({
       state.error = null;
     },
 
-    // Logout user
+    // Logout action - completely clear all auth data
     logout: (state) => {
       state.user = null;
       state.accessToken = null;
@@ -139,107 +143,120 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.error = null;
       state.registrationStep = "form";
+      state.isLoading = false;
 
+      // Clear localStorage
       clearAuthState();
     },
 
-    // Reset state
-    resetAuth: () => getInitialState(),
+    // Reset auth state to initial state
+    resetAuth: (state) => {
+      const initialState = getInitialState();
+      Object.assign(state, initialState);
+    },
+
+    // Set loading state
+    setLoading: (state, action: PayloadAction<boolean>) => {
+      state.isLoading = action.payload;
+    },
   },
+
   extraReducers: (builder) => {
-    // Handle register user
-    builder
-      .addMatcher(authApi.endpoints.registerUser.matchPending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addMatcher(
-        authApi.endpoints.registerUser.matchFulfilled,
-        (state, action) => {
-          state.isLoading = false;
-          const response = action.payload;
+    // Handle register
+    builder.addMatcher(authApi.endpoints.registerUser.matchPending, (state) => {
+      state.isLoading = true;
+      state.error = null;
+    });
 
-          if (response.success && response.data) {
-            const { user, tokens, requiresVerification } = response.data;
+    builder.addMatcher(
+      authApi.endpoints.registerUser.matchFulfilled,
+      (state, action) => {
+        state.isLoading = false;
+        const response = action.payload;
 
-            // Set credentials
-            state.user = user;
-            state.accessToken = tokens.accessToken;
-            state.refreshToken = tokens.refreshToken;
-            state.sessionId = tokens.sessionId;
-            state.isAuthenticated = true;
-
-            // Set registration step based on verification requirement
-            state.registrationStep = requiresVerification
-              ? "verification"
-              : "completed";
-
-            saveAuthState(state);
-          }
-        }
-      )
-      .addMatcher(
-        authApi.endpoints.registerUser.matchRejected,
-        (state, action) => {
-          state.isLoading = false;
-
-          // Handle different error types
-          if (action.payload) {
-            const errorPayload = action.payload as {
-              data?: { message?: string; error?: string };
-            };
-            state.error = errorPayload.data?.message || "Registration failed";
+        if (response.success && response.data) {
+          if (response.data.requiresVerification) {
+            state.registrationStep = "verification";
           } else {
-            state.error = action.error.message || "Registration failed";
-          }
-        }
-      );
-
-    // Handle login user
-    builder
-      .addMatcher(authApi.endpoints.loginUser.matchPending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addMatcher(
-        authApi.endpoints.loginUser.matchFulfilled,
-        (state, action) => {
-          state.isLoading = false;
-          const response = action.payload;
-
-          if (response.success && response.data) {
-            const { user, tokens } = response.data;
-
-            // Set credentials
-            state.user = user;
-            state.accessToken = tokens.accessToken;
-            state.refreshToken = tokens.refreshToken;
-            state.sessionId = tokens.sessionId;
+            state.user = response.data.user;
+            state.accessToken = response.data.tokens.accessToken;
+            state.refreshToken = response.data.tokens.refreshToken;
+            state.sessionId = response.data.tokens.sessionId;
             state.isAuthenticated = true;
             state.registrationStep = "completed";
 
             saveAuthState(state);
           }
         }
-      )
-      .addMatcher(
-        authApi.endpoints.loginUser.matchRejected,
-        (state, action) => {
-          state.isLoading = false;
+      }
+    );
 
-          if (action.payload) {
-            const errorPayload = action.payload as {
-              data?: { message?: string; error?: string };
-            };
-            state.error = errorPayload.data?.message || "Login failed";
-          } else {
-            state.error = action.error.message || "Login failed";
-          }
+    builder.addMatcher(
+      authApi.endpoints.registerUser.matchRejected,
+      (state, action) => {
+        state.isLoading = false;
+        if (action.error) {
+          const errorPayload = action.error as {
+            data?: { message?: string; error?: string };
+          };
+          state.error = errorPayload.data?.message || "Registration failed";
         }
-      );
+      }
+    );
 
-    // Handle logout
+    // Handle login
+    builder.addMatcher(authApi.endpoints.loginUser.matchPending, (state) => {
+      state.isLoading = true;
+      state.error = null;
+    });
+
+    builder.addMatcher(
+      authApi.endpoints.loginUser.matchFulfilled,
+      (state, action) => {
+        state.isLoading = false;
+        const response = action.payload;
+
+        if (response.success && response.data) {
+          state.user = response.data.user;
+          state.accessToken = response.data.tokens.accessToken;
+          state.refreshToken = response.data.tokens.refreshToken;
+          state.sessionId = response.data.tokens.sessionId;
+          state.isAuthenticated = true;
+          state.error = null;
+
+          saveAuthState(state);
+        }
+      }
+    );
+
+    builder.addMatcher(
+      authApi.endpoints.loginUser.matchRejected,
+      (state, action) => {
+        state.isLoading = false;
+        if (action.error) {
+          const errorPayload = action.error as {
+            data?: { message?: string; error?: string };
+          };
+          state.error = errorPayload.data?.message || "Login failed";
+        } else {
+          state.error =
+            typeof action.error === "object" &&
+            action.error !== null &&
+            "message" in action.error &&
+            typeof (action.error as { message?: string }).message === "string"
+              ? (action.error as { message?: string }).message ?? "Login failed"
+              : "Login failed";
+        }
+      }
+    );
+
+    // Handle logout - backend logout success
+    builder.addMatcher(authApi.endpoints.logoutUser.matchPending, (state) => {
+      state.isLoading = true;
+    });
+
     builder.addMatcher(authApi.endpoints.logoutUser.matchFulfilled, (state) => {
+      // Clear all auth data
       state.user = null;
       state.accessToken = null;
       state.refreshToken = null;
@@ -247,6 +264,21 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.error = null;
       state.registrationStep = "form";
+      state.isLoading = false;
+
+      clearAuthState();
+    });
+
+    builder.addMatcher(authApi.endpoints.logoutUser.matchRejected, (state) => {
+      // Even if logout fails on backend, clear frontend state for security
+      state.user = null;
+      state.accessToken = null;
+      state.refreshToken = null;
+      state.sessionId = null;
+      state.isAuthenticated = false;
+      state.error = null;
+      state.registrationStep = "form";
+      state.isLoading = false;
 
       clearAuthState();
     });
@@ -292,6 +324,7 @@ export const {
   clearError,
   logout,
   resetAuth,
+  setLoading,
 } = authSlice.actions;
 
 export default authSlice.reducer;

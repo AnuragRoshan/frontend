@@ -1,3 +1,4 @@
+// src/components/layout/Sidebar.tsx - Final version with logout modal
 import { useState } from "react";
 import styled from "styled-components";
 import { Link, useLocation } from "react-router-dom";
@@ -20,6 +21,10 @@ import {
   Receipt,
 } from "lucide-react";
 import { Tooltip } from "antd";
+import { useLogout } from "../../hooks/useLogout";
+import { useAppSelector } from "../../store/hooks";
+import { selectUser } from "../../store/slices/authSlices";
+import LogoutConfirmationModal from "../auth/LogoutConfirmationModal";
 
 const SidebarWrapper = styled.aside<{ expanded: boolean }>`
   width: ${({ expanded }) => (expanded ? "180px" : "25px")};
@@ -76,12 +81,66 @@ const SidebarLink = styled(Link)<{
   }
 `;
 
+const SidebarButton = styled.button<{
+  expanded?: boolean;
+  disabled?: boolean;
+}>`
+  color: ${({ disabled }) => (disabled ? "#aaa" : "#fff")};
+  background: none;
+  border: none;
+  cursor: ${({ disabled }) => (disabled ? "not-allowed" : "pointer")};
+  margin: ${sharedTheme.spacing.xs} 0;
+  display: flex;
+  align-items: center;
+  justify-content: ${({ expanded }) => (expanded ? "start" : "center")};
+  padding: 8px 8px;
+  width: 90%;
+  font-weight: ${sharedTheme.typography.fontWeights.medium};
+  font-size: ${sharedTheme.typography.fontSizes.sm};
+  border-radius: ${sharedTheme.borderRadius.md};
+  background-color: transparent;
+  pointer-events: ${({ disabled }) => (disabled ? "none" : "auto")};
+
+  &:hover {
+    background-color: ${({ disabled }) =>
+      disabled ? "transparent" : "rgba(59, 72, 94)"};
+  }
+`;
+
 const Sidebar = () => {
   const location = useLocation();
   const pathname = location.pathname;
+  const user = useAppSelector(selectUser);
+  const { logoutUser, isLoading: isLoggingOut } = useLogout();
 
   const [isExpanded, setIsExpanded] = useState(true);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
   const toggleSidebar = () => setIsExpanded((prev) => !prev);
+
+  // Handle logout button click - show confirmation modal
+  const handleLogoutClick = () => {
+    setShowLogoutModal(true);
+  };
+
+  // Handle logout confirmation
+  const handleLogoutConfirm = async () => {
+    try {
+      await logoutUser({
+        silent: false,
+        redirectTo: "/", // Redirect to landing page
+      });
+      setShowLogoutModal(false);
+    } catch (error) {
+      console.error("Logout failed:", error);
+      setShowLogoutModal(false);
+    }
+  };
+
+  // Handle logout cancel
+  const handleLogoutCancel = () => {
+    setShowLogoutModal(false);
+  };
 
   const navItems: {
     to?: string;
@@ -92,6 +151,8 @@ const Sidebar = () => {
     badge?: number;
     isLocked?: boolean;
     userType?: "influencer" | "brand" | "admin" | "all";
+    isLogout?: boolean;
+    onClick?: () => void;
   }[] = [
     { to: "/home", label: "Home", icon: Home, userType: "influencer" },
     {
@@ -176,7 +237,6 @@ const Sidebar = () => {
       badge: 12,
       userType: "influencer",
     },
-
     {
       to: "/settings",
       label: "Settings",
@@ -185,14 +245,17 @@ const Sidebar = () => {
     },
     { divider: true },
     {
-      to: "/logout",
       label: "Logout",
       icon: LogOutIcon,
       userType: "all",
+      isLogout: true,
+      onClick: handleLogoutClick,
     },
   ];
 
-  const userType: "influencer" | "brand" = "influencer"; // This should be dynamically set based on the logged-in user
+  // Determine user type - fallback to influencer if not set
+  const userType: "influencer" | "brand" =
+    user?.userType === "BRAND" ? "brand" : "influencer";
 
   // Filter nav items based on userType
   const filteredNavItems = navItems.filter((item) => {
@@ -205,112 +268,160 @@ const Sidebar = () => {
   });
 
   return (
-    <SidebarWrapper expanded={isExpanded}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: isExpanded ? "space-between" : "center",
-          alignItems: "center",
-          width: "100%",
-          marginBottom: sharedTheme.spacing.md,
-        }}
-      >
-        {isExpanded && (
-          <div
-            style={{
-              fontSize: sharedTheme.typography.fontSizes.xxl,
-              fontWeight: sharedTheme.typography.fontWeights.bold,
-              color: sharedTheme.colorVariants.primary.light,
-              whiteSpace: "nowrap",
-            }}
-          >
-            Vibeco
-          </div>
-        )}
-        <button
-          onClick={toggleSidebar}
+    <>
+      <SidebarWrapper expanded={isExpanded}>
+        <div
           style={{
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            color: lightTheme.colors.sidebarText,
+            display: "flex",
+            justifyContent: isExpanded ? "space-between" : "center",
+            alignItems: "center",
+            width: "100%",
+            marginBottom: sharedTheme.spacing.md,
           }}
-          title={isExpanded ? "Collapse" : "Expand"}
         >
-          {isExpanded ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
-        </button>
-      </div>
-      {filteredNavItems.map((item, index) => {
-        if (item.divider) return <SidebarDivider key={`divider-${index}`} />;
-        const IconComponent = item.icon;
-        const isActive = pathname === item.to;
-        const isDisabled = item.isLocked;
-
-        return (
-          <SidebarLink
-            key={item.to}
-            to={item.to!}
-            active={isActive}
-            expanded={isExpanded}
-            disabled={isDisabled}
+          {isExpanded && (
+            <div
+              style={{
+                fontSize: sharedTheme.typography.fontSizes.xxl,
+                fontWeight: sharedTheme.typography.fontWeights.bold,
+                color: sharedTheme.colorVariants.primary.light,
+                whiteSpace: "nowrap",
+              }}
+            >
+              Vibeco
+            </div>
+          )}
+          <button
+            onClick={toggleSidebar}
             style={{
-              ...(item.highlight ? { color: "#FFD700" } : {}),
-              ...(isDisabled ? { cursor: "not-allowed", opacity: 0.6 } : {}),
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              color: lightTheme.colors.sidebarText,
             }}
-            onClick={(e) => {
-              if (isDisabled) {
-                e.preventDefault();
-              }
-            }}
+            title={isExpanded ? "Collapse" : "Expand"}
           >
-            <Tooltip title={item.label}>
-              <div style={{ position: "relative", display: "inline-flex" }}>
-                {IconComponent && (
-                  <IconComponent
-                    size={18}
-                    style={{
-                      marginRight: isExpanded ? "8px" : "0",
-                      ...(item.highlight ? { color: "#FFD700" } : {}),
-                    }}
-                  />
-                )}
-                {item.badge && (
-                  <span
-                    style={{
-                      position: "absolute",
-                      top: "-5px",
-                      right: "4px",
-                      backgroundColor: "red",
-                      color: "white",
-                      borderRadius: "50%",
-                      fontSize: "8px",
-                      width: "13px",
-                      height: "13px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    {item.badge}
-                  </span>
-                )}
-              </div>
-            </Tooltip>
-            {isExpanded && (
-              <span
+            {isExpanded ? (
+              <ChevronLeft size={18} />
+            ) : (
+              <ChevronRight size={18} />
+            )}
+          </button>
+        </div>
+
+        {filteredNavItems.map((item, index) => {
+          if (item.divider) return <SidebarDivider key={`divider-${index}`} />;
+
+          const IconComponent = item.icon;
+          const isActive = pathname === item.to;
+          const isDisabled = item.isLocked;
+
+          // Handle logout button differently
+          if (item.isLogout) {
+            return (
+              <SidebarButton
+                key="logout-button"
+                expanded={isExpanded}
+                disabled={isLoggingOut}
+                onClick={item.onClick}
                 style={{
-                  ...(item.highlight ? { color: "#FFD700" } : {}),
-                  ...(isDisabled ? { color: "#aaa" } : {}),
+                  opacity: isLoggingOut ? 0.6 : 1,
+                  cursor: isLoggingOut ? "not-allowed" : "pointer",
                 }}
               >
-                {item.label}
-              </span>
-            )}
-          </SidebarLink>
-        );
-      })}
-    </SidebarWrapper>
+                <Tooltip title={isLoggingOut ? "Logging out..." : item.label}>
+                  <div style={{ position: "relative", display: "inline-flex" }}>
+                    {IconComponent && (
+                      <IconComponent
+                        size={18}
+                        style={{
+                          marginRight: isExpanded ? "8px" : "0",
+                        }}
+                      />
+                    )}
+                  </div>
+                </Tooltip>
+                {isExpanded && <span>{item.label}</span>}
+              </SidebarButton>
+            );
+          }
+
+          // Regular navigation items
+          return (
+            <SidebarLink
+              key={item.to}
+              to={item.to!}
+              active={isActive}
+              expanded={isExpanded}
+              disabled={isDisabled}
+              style={{
+                ...(item.highlight ? { color: "#FFD700" } : {}),
+                ...(isDisabled ? { cursor: "not-allowed", opacity: 0.6 } : {}),
+              }}
+              onClick={(e) => {
+                if (isDisabled) {
+                  e.preventDefault();
+                }
+              }}
+            >
+              <Tooltip title={item.label}>
+                <div style={{ position: "relative", display: "inline-flex" }}>
+                  {IconComponent && (
+                    <IconComponent
+                      size={18}
+                      style={{
+                        marginRight: isExpanded ? "8px" : "0",
+                        ...(item.highlight ? { color: "#FFD700" } : {}),
+                      }}
+                    />
+                  )}
+                  {item.badge && (
+                    <span
+                      style={{
+                        position: "absolute",
+                        top: "-5px",
+                        right: "4px",
+                        backgroundColor: "red",
+                        color: "white",
+                        borderRadius: "50%",
+                        fontSize: "8px",
+                        width: "13px",
+                        height: "13px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {item.badge}
+                    </span>
+                  )}
+                </div>
+              </Tooltip>
+              {isExpanded && (
+                <span
+                  style={{
+                    ...(item.highlight ? { color: "#FFD700" } : {}),
+                    ...(isDisabled ? { color: "#aaa" } : {}),
+                  }}
+                >
+                  {item.label}
+                </span>
+              )}
+            </SidebarLink>
+          );
+        })}
+      </SidebarWrapper>
+
+      {/* Logout Confirmation Modal */}
+      <LogoutConfirmationModal
+        isOpen={showLogoutModal}
+        onClose={handleLogoutCancel}
+        onConfirm={handleLogoutConfirm}
+        isLoading={isLoggingOut}
+        userName={user ? `${user.firstName} ${user.lastName}` : undefined}
+      />
+    </>
   );
 };
 

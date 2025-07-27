@@ -34,9 +34,7 @@ export const DeleteCampaignModal: React.FC<DeleteCampaignModalProps> = ({
           </ModalText>
           <ModalActions>
             <ActionButton onClick={onClose}>Cancel</ActionButton>
-            <ActionButton danger onClick={onConfirm}>
-              Delete Campaign
-            </ActionButton>
+            <ActionButton onClick={onConfirm}>Delete Campaign</ActionButton>
           </ModalActions>
         </ModalBody>
       </ModalContainer>
