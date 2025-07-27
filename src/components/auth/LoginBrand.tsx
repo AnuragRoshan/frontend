@@ -1,10 +1,179 @@
-import { useState } from "react";
+// components/auth/LoginBrand.tsx
+import React, { useState } from "react";
 import styled from "styled-components";
-import { sharedTheme } from "../../styles/theme/theme";
-import { MailIcon, LockIcon } from "lucide-react";
-import ButtonLoader from "../Loader/ButtonLoader";
 import { useNavigate } from "react-router-dom";
+import {
+  Mail as MailIcon,
+  Lock as LockIcon,
+  Eye,
+  EyeOff,
+  Building2 as BuildingIcon,
+} from "lucide-react";
+import { sharedTheme } from "../../styles/theme/theme";
+import ButtonLoader from "../Loader/ButtonLoader";
+import { InputGroup, StyledInput } from "./LoginInfluencer";
 
+const LoginBrand: React.FC = () => {
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleSubmit = async () => {
+    setIsLoading(true);
+
+    // Simulate API call
+    try {
+      // Add your brand login logic here
+      console.log("Brand login attempt:", formData);
+
+      // Simulate API delay
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      // On successful login, navigate to brand dashboard
+      navigate("/brand/dashboard");
+    } catch (error) {
+      console.error("Login failed:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <Background>
+      <AuthCard>
+        <LogoSection>
+          <BuildingIcon
+            size={40}
+            color={sharedTheme.colorVariants.primary.light}
+          />
+        </LogoSection>
+
+        <Title>Welcome Back</Title>
+        <Subtitle>Sign in to your brand account to continue</Subtitle>
+
+        <div
+          style={{
+            width: "100%",
+            gap: sharedTheme.spacing.sm,
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          {/* Email Input */}
+          <InputGroup>
+            <MailIcon
+              size={18}
+              color={sharedTheme.colorVariants.secondary.dark}
+            />
+            <StyledInput
+              type="email"
+              placeholder="Brand Email Address"
+              value={formData.email}
+              onChange={(e) => handleInputChange("email", e.target.value)}
+            />
+          </InputGroup>
+
+          {/* Password Input */}
+          <InputGroup>
+            <LockIcon
+              size={18}
+              color={sharedTheme.colorVariants.secondary.dark}
+            />
+            <StyledInput
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              value={formData.password}
+              onChange={(e) => handleInputChange("password", e.target.value)}
+            />
+            <PasswordToggle
+              onClick={() => setShowPassword(!showPassword)}
+              type="button"
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </PasswordToggle>
+          </InputGroup>
+
+          {/* Forgot Password & Sign Up Links */}
+          <div
+            style={{
+              width: "100%",
+              display: "flex",
+              flexDirection: "column",
+              gap: sharedTheme.spacing.xs,
+            }}
+          >
+            <ForgotPassword>
+              <span
+                onClick={() => navigate("/forgot-password")}
+                style={{
+                  cursor: "pointer",
+                  color: sharedTheme.colorVariants.primary.light,
+                }}
+              >
+                Forgot Password?
+              </span>
+            </ForgotPassword>
+            <ForgotPassword>
+              Don't have a brand account?
+              <span
+                onClick={() => navigate("/brand/signup")}
+                style={{
+                  cursor: "pointer",
+                  color: sharedTheme.colorVariants.primary.light,
+                }}
+              >
+                {" "}
+                Register your brand here
+              </span>
+            </ForgotPassword>
+          </div>
+        </div>
+
+        {/* Submit Button */}
+        <SubmitButton
+          onClick={!isLoading ? handleSubmit : undefined}
+          isLoading={isLoading}
+        >
+          {isLoading ? (
+            <ButtonLoader color="white" size="md" />
+          ) : (
+            "Sign In to Dashboard"
+          )}
+        </SubmitButton>
+
+        {/* Switch to Influencer */}
+        <SwitchAccountType>
+          Are you an influencer?{" "}
+          <span
+            onClick={() => navigate("/influencer/login")}
+            style={{
+              cursor: "pointer",
+              color: sharedTheme.colorVariants.primary.light,
+              fontWeight: "600",
+            }}
+          >
+            Sign in here
+          </span>
+        </SwitchAccountType>
+      </AuthCard>
+    </Background>
+  );
+};
+
+export default LoginBrand;
+
+// Styled Components
 const Background = styled.div`
   position: relative;
   min-height: 100vh;
@@ -22,7 +191,7 @@ const Background = styled.div`
     left: 0;
     height: 100%;
     width: 100%;
-    background: url("https://ik.imagekit.io/i3divn77k/MVP/authBG.png?updatedAt=1746276592750")
+    background: url("https://ik.imagekit.io/i3divn77k/MVP/akjdna.png?updatedAt=1746312870577")
       center/cover no-repeat;
     opacity: 0.4;
     z-index: 0;
@@ -41,79 +210,30 @@ const AuthCard = styled.div`
   border-radius: ${sharedTheme.borderRadius.xl};
   box-shadow: ${sharedTheme.shadows.custom};
   padding: ${sharedTheme.spacing.xl};
-  max-width: 400px;
-  width: 25%;
+  max-width: 450px;
+  width: 90%;
   margin: 0 auto;
   backdrop-filter: blur(10px);
+  max-height: 90vh;
+  overflow-y: auto;
 `;
 
-const LoginBrand = () => {
-  const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
-  return (
-    <Background>
-      <AuthCard>
-        <Title>
-          Welcome Back <br /> Brand Partner
-        </Title>
-        <Subtitle>Manage your campaigns and insights with ease.</Subtitle>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: sharedTheme.spacing.sm,
-            width: "90%",
-          }}
-        >
-          <InputGroup>
-            <MailIcon
-              size={18}
-              color={sharedTheme.colorVariants.secondary.dark}
-            />
-            <StyledInput type="text" placeholder="Email" />
-          </InputGroup>
-          <InputGroup>
-            <LockIcon
-              size={18}
-              color={sharedTheme.colorVariants.secondary.dark}
-            />
-            <StyledInput type="password" placeholder="Password" />
-          </InputGroup>
-          <ForgotPassword>Forgot password?</ForgotPassword>
-          <ForgotPassword>
-            Influencer ?
-            <span
-              onClick={() => {
-                navigate("/login");
-              }}
-              style={{
-                cursor: "pointer",
-                color: sharedTheme.colorVariants.primary.light,
-              }}
-            >
-              {" "}
-              Login here
-            </span>
-          </ForgotPassword>
-        </div>
-        <SubmitButton onClick={() => setIsLoading((prev) => !prev)}>
-          {isLoading ? (
-            <ButtonLoader color="white" size={"md"} />
-          ) : (
-            "Get Started"
-          )}
-        </SubmitButton>
-      </AuthCard>
-    </Background>
-  );
-};
-
-export default LoginBrand;
+const LogoSection = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  background: ${sharedTheme.colorVariants.primary.light}15;
+  border-radius: ${sharedTheme.borderRadius.full};
+  margin-bottom: ${sharedTheme.spacing.sm};
+`;
 
 const Title = styled.div`
   font-size: ${sharedTheme.typography.fontSizes.xxl};
   color: ${sharedTheme.colorVariants.secondary.dark};
   font-weight: ${sharedTheme.typography.fontWeights.bold};
+  text-align: center;
 `;
 
 const Subtitle = styled.div`
@@ -123,23 +243,19 @@ const Subtitle = styled.div`
   text-align: center;
 `;
 
-const InputGroup = styled.div`
-  width: 98%;
-  border-radius: ${sharedTheme.borderRadius.md};
-  background-color: ${sharedTheme.components.input.backgroundColor};
+const PasswordToggle = styled.button`
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: ${sharedTheme.colorVariants.secondary.light};
   display: flex;
   align-items: center;
-  padding: ${sharedTheme.spacing.xs};
-  gap: ${sharedTheme.spacing.xs};
-`;
+  justify-content: center;
+  padding: 4px;
 
-const StyledInput = styled.input`
-  width: 100%;
-  padding: ${sharedTheme.spacing.xs};
-  font-size: ${sharedTheme.typography.fontSizes.sm};
-  border: none;
-  outline: none;
-  background-color: transparent;
+  &:hover {
+    color: ${sharedTheme.colorVariants.secondary.dark};
+  }
 `;
 
 const ForgotPassword = styled.div`
@@ -148,8 +264,8 @@ const ForgotPassword = styled.div`
   font-size: ${sharedTheme.typography.fontSizes.xs};
 `;
 
-const SubmitButton = styled.div`
-  width: 91%;
+const SubmitButton = styled.div<{ isLoading?: boolean }>`
+  width: 100%;
   height: 20px;
   text-align: center;
   display: flex;
@@ -157,13 +273,26 @@ const SubmitButton = styled.div`
   align-items: center;
   padding: ${sharedTheme.spacing.sm} 0;
   border-radius: ${sharedTheme.borderRadius.md};
-  cursor: pointer;
+  cursor: ${(props) => (props.isLoading ? "not-allowed" : "pointer")};
   font-size: ${sharedTheme.typography.fontSizes.sm};
   background-color: ${sharedTheme.components.button.colors.dark.background};
   color: ${sharedTheme.components.button.colors.default.text};
+  opacity: ${(props) => (props.isLoading ? 0.7 : 1)};
 
   &:hover {
-    background-color: ${sharedTheme.components.button.colors.dark
-      .disabledBackground};
+    background-color: ${(props) =>
+      props.isLoading
+        ? sharedTheme.components.button.colors.dark.background
+        : sharedTheme.components.button.colors.dark.disabledBackground};
   }
+`;
+
+const SwitchAccountType = styled.div`
+  width: 100%;
+  text-align: center;
+  font-size: ${sharedTheme.typography.fontSizes.xs};
+  color: ${sharedTheme.colorVariants.secondary.light};
+  margin-top: ${sharedTheme.spacing.md};
+  padding-top: ${sharedTheme.spacing.sm};
+  border-top: 1px solid ${sharedTheme.colorVariants.secondary.light}20;
 `;

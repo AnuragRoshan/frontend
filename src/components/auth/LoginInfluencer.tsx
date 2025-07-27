@@ -300,7 +300,7 @@ const Background = styled.div`
   }
 `;
 
-const AuthCard = styled.div`
+export const AuthCard = styled.div`
   position: relative;
   z-index: 1;
   background: #ffffff;
@@ -339,7 +339,7 @@ const Subtitle = styled.div`
   margin-bottom: ${sharedTheme.spacing.md};
 `;
 
-const InputGroup = styled.div<{ hasError?: boolean }>`
+export const InputGroup = styled.div<{ hasError?: boolean }>`
   width: 100%;
   border-radius: ${sharedTheme.borderRadius.md};
   background-color: ${sharedTheme.components.input.backgroundColor};
@@ -358,7 +358,7 @@ const InputGroup = styled.div<{ hasError?: boolean }>`
   }
 `;
 
-const StyledInput = styled.input`
+export const StyledInput = styled.input`
   width: 100%;
   padding: ${sharedTheme.spacing.xs};
   font-size: ${sharedTheme.typography.fontSizes.sm};
@@ -404,7 +404,7 @@ const FormFooter = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: ${sharedTheme.spacing.md};
+  margin-bottom: ${sharedTheme.spacing.sm};
   font-size: ${sharedTheme.typography.fontSizes.xs};
 `;
 
@@ -455,7 +455,7 @@ const SubmitButton = styled.button`
   background-color: ${sharedTheme.components.button.colors.dark.background};
   color: ${sharedTheme.components.button.colors.default.text};
   transition: background-color 0.2s ease;
-  margin-bottom: ${sharedTheme.spacing.md};
+  margin-bottom: ${sharedTheme.spacing.sm};
 
   &:hover:not(:disabled) {
     background-color: ${sharedTheme.components.button.colors.dark
