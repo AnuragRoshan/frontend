@@ -107,7 +107,7 @@ const ModalHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: ${sharedTheme.spacing.lg};
+  padding: ${sharedTheme.spacing.md};
   border-bottom: 1px solid #e5e7eb;
 `;
 

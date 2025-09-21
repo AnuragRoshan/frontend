@@ -19,30 +19,36 @@ import {
 } from "lucide-react";
 import { sharedTheme } from "../../../styles/theme/theme";
 import Modal from "../../../components/layout/Modal";
+import { Deal } from "./Deals";
 
-interface Deal {
-  id: string;
-  title: string;
-  brand: string;
-  brandLogo: string;
-  amount: string;
-  status: "pending" | "active" | "completed";
-  createdDate: string;
-  deadline?: string;
-  completedDate?: string;
-  description: string;
-  deliverables: string[];
-  location?: string;
-  category: string;
-  priority: "High" | "Medium" | "Low";
-  engagement?: {
-    likes?: number;
-    comments?: number;
-    shares?: number;
-  };
-  rating?: number;
-  feedback?: string;
-}
+// export interface Deal {
+//   id: string;
+//   title: string;
+//   brand: string;
+//   brandLogo: string;
+//   amount: string;
+//   originalAmount?: string; // New field for original offer amount
+//   status: "pending" | "active" | "completed";
+//   createdDate: string;
+//   deadline?: string;
+//   completedDate?: string;
+//   description: string;
+//   deliverables: string[];
+//   location?: string;
+//   category: string;
+//   priority: "High" | "Medium" | "Low";
+//   engagement?: {
+//     likes?: number;
+//     comments?: number;
+//     shares?: number;
+//   };
+//   rating?: number;
+//   feedback?: string;
+//   counterOffers?: CounterOffer[]; // New field for counter-offer history
+//   hasUnreadMessages?: boolean; // New field for unread counter-offers
+//   isNegotiable?: boolean; // New field to determine if deal allows negotiation
+//   lastActivity?: string;
+// }
 
 interface ViewDetailsModalProps {
   isOpen: boolean;

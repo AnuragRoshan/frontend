@@ -33,13 +33,6 @@ const LogoutConfirmationModal: React.FC<LogoutConfirmationModalProps> = ({
       showCloseButton={!isLoading}
     >
       <ModalContent>
-        <LogoutIcon>
-          <LogOutIcon
-            size={28}
-            color={sharedTheme.colorVariants.secondary.light}
-          />
-        </LogoutIcon>
-
         <LogoutMessage>
           {userName ? (
             <>
@@ -49,10 +42,6 @@ const LogoutConfirmationModal: React.FC<LogoutConfirmationModalProps> = ({
             "Are you sure you want to logout?"
           )}
         </LogoutMessage>
-
-        {/* <LogoutNote>
-          You'll need to sign in again to access your account.
-        </LogoutNote> */}
 
         <ModalActions>
           <CancelButton onClick={onClose} disabled={isLoading}>
@@ -88,21 +77,9 @@ const ModalContent = styled.div`
   gap: ${sharedTheme.spacing.md};
 `;
 
-const LogoutIcon = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  /* background-color: #fef2f2; */
-  border: 2px solid #fecaca;
-`;
-
 const LogoutMessage = styled.p`
   font-size: ${sharedTheme.typography.fontSizes.md};
   color: ${sharedTheme.colorVariants.secondary.dark};
-  margin: 0;
   line-height: 1.5;
   max-width: 300px;
 `;

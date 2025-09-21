@@ -781,15 +781,15 @@ const BrandDealsPage: React.FC = () => {
                           onClick={() => handleCounterOffer(deal)}
                         >
                           <ArrowRightLeft size={16} />
-                          Counter Offer
+                          Counter
                         </ActionButton>
                         <ActionButton variant="secondary">
                           <MessageSquare size={16} />
-                          View Negotiation
+                          Negotiation
                         </ActionButton>
                         <ActionButton variant="secondary">
                           <Eye size={16} />
-                          View Details
+                          Details
                         </ActionButton>
                       </>
                     )}
@@ -1036,17 +1036,18 @@ const StatsContainer = styled.div`
 
 const StatCard = styled.div<{ highlight?: boolean; urgent?: boolean }>`
   background: white;
-  border: 1px solid
-    ${({ highlight }) =>
-      highlight ? "#f59e0b" : ({ urgent }) => (urgent ? "#ef4444" : "#e5e7eb")};
+  border: 1px solid "#c1c3c6";
   border-radius: 12px;
   padding: 1.5rem;
+
+  color: ${sharedTheme.colorVariants.secondary.light};
   display: flex;
   align-items: center;
   gap: 1rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 
-  ${({ highlight }) =>
+  background-color: #f3f3f3;
+  /* ${({ highlight }) =>
     highlight &&
     `
     background: linear-gradient(135deg, #fef3c7 0%, #fbbf24 100%);
@@ -1059,7 +1060,7 @@ const StatCard = styled.div<{ highlight?: boolean; urgent?: boolean }>`
     background: linear-gradient(135deg, #fecaca 0%, #ef4444 100%);
     border-color: #ef4444;
     animation: pulse 2s infinite;
-  `}
+  `} */
 
   @keyframes pulse {
     0%,
@@ -1077,7 +1078,7 @@ const StatIcon = styled.div`
   height: 48px;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.2);
-  color: white;
+  /* color: white; */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1091,12 +1092,12 @@ const StatContent = styled.div`
 const StatValue = styled.div`
   font-size: ${sharedTheme.typography.fontSizes.xxl};
   font-weight: ${sharedTheme.typography.fontWeights.bold};
-  color: white;
+  /* color: white; */
 `;
 
 const StatLabel = styled.div`
   font-size: ${sharedTheme.typography.fontSizes.sm};
-  color: rgba(255, 255, 255, 0.8);
+  /* color: rgba(255, 255, 255, 0.8); */
 `;
 
 // Tabs Styles

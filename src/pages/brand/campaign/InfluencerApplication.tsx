@@ -765,15 +765,15 @@ const InfluencerApplications: React.FC = () => {
                   </TableCell>
                   <TableCell>
                     <ActionsContainer>
-                      <ActionButton
+                      {/* <ActionButton
                         variant="secondary"
                         size="sm"
                         onClick={() => handleViewProfile(influencer)}
                       >
                         <Eye size={14} />
                         View
-                      </ActionButton>
-                      {influencer.status === "pending" && (
+                      </ActionButton> */}
+                      {/* {influencer.status === "pending" && (
                         <>
                           <ActionButton
                             variant="success"
@@ -796,7 +796,7 @@ const InfluencerApplications: React.FC = () => {
                             Reject
                           </ActionButton>
                         </>
-                      )}
+                      )} */}
                       <MoreButton>
                         <MoreHorizontal size={14} />
                       </MoreButton>

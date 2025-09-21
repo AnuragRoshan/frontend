@@ -1,4 +1,4 @@
-// src/components/layout/Sidebar.tsx - Final version with logout modal
+// src/components/layout/Sidebar.tsx - Smooth transition version
 import { useState } from "react";
 import styled from "styled-components";
 import { Link, useLocation } from "react-router-dom";
@@ -7,8 +7,6 @@ import {
   Home,
   LayoutDashboard,
   Settings,
-  ChevronLeft,
-  ChevronRight,
   User,
   Bell,
   Clapperboard,
@@ -19,37 +17,112 @@ import {
   BookUser,
   Handshake,
   Receipt,
+  PanelLeft,
+  PanelRight,
 } from "lucide-react";
-import { Tooltip } from "antd";
+// import { Tooltip } from "antd";
 import { useLogout } from "../../hooks/useLogout";
 import { useAppSelector } from "../../store/hooks";
 import { selectUser } from "../../store/slices/authSlices";
 import LogoutConfirmationModal from "../auth/LogoutConfirmationModal";
 
 const SidebarWrapper = styled.aside<{ expanded: boolean }>`
-  width: ${({ expanded }) => (expanded ? "180px" : "25px")};
+  width: ${({ expanded }) => (expanded ? "180px" : "50px")};
   background-color: ${lightTheme.colors.sidebarBackground || "#333"};
   color: ${lightTheme.colors.sidebarText || "#fff"};
   display: flex;
   flex-direction: column;
-  padding: ${sharedTheme.spacing.md};
-  align-items: ${({ expanded }) => (expanded ? "start" : "center")};
+  padding: ${sharedTheme.spacing.sm};
   gap: 1px;
-  transition: width 0.3s ease;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   margin: 0.5rem;
   border-radius: ${sharedTheme.borderRadius.xl};
+  overflow-y: scroll;
+  position: relative;
 
   @media (max-width: 768px) {
     display: none;
   }
 `;
 
+const SidebarHeader = styled.div<{ expanded: boolean }>`
+  display: flex;
+  align-items: center;
+  margin-bottom: ${sharedTheme.spacing.sm};
+  height: 35px;
+  position: relative;
+  width: 100%;
+`;
+
+const LogoText = styled.div<{ expanded: boolean }>`
+  font-size: ${sharedTheme.typography.fontSizes.xxl};
+  font-weight: ${sharedTheme.typography.fontWeights.bold};
+  color: ${sharedTheme.colorVariants.primary.light};
+  white-space: nowrap;
+  opacity: ${({ expanded }) => (expanded ? 1 : 0)};
+  visibility: ${({ expanded }) => (expanded ? "visible" : "hidden")};
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  flex: 1;
+  margin-left: 10px;
+`;
+
+const ToggleButton = styled.button<{ expanded: boolean }>`
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: ${lightTheme.colors.sidebarText};
+  padding: 8px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    background-color: rgba(59, 72, 94, 0.5);
+  }
+`;
+
 const SidebarDivider = styled.div`
   width: 100%;
   height: 1px;
-  margin: ${sharedTheme.spacing.sm} 0;
+  margin: ${sharedTheme.spacing.xs} 0;
   background-color: white;
   opacity: 0.3;
+`;
+
+const NavItemContainer = styled.div<{ expanded: boolean }>`
+  width: 100%;
+  display: flex;
+  align-items: center;
+  margin: 2px 0;
+  position: relative;
+`;
+
+const IconContainer = styled.div<{ expanded: boolean }>`
+  min-width: 28px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+`;
+
+const TextContainer = styled.span<{ expanded: boolean }>`
+  margin-left: 8px;
+  opacity: ${({ expanded }) => (expanded ? 1 : 0)};
+  visibility: ${({ expanded }) => (expanded ? "visible" : "hidden")};
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+  overflow: hidden;
 `;
 
 const SidebarLink = styled(Link)<{
@@ -59,12 +132,11 @@ const SidebarLink = styled(Link)<{
 }>`
   color: ${({ disabled }) => (disabled ? "#aaa" : "#fff")};
   text-decoration: none;
-  margin: ${sharedTheme.spacing.xs} 0;
+  justify-content: ${({ expanded }) => (expanded ? "flex-start" : "center")};
   display: flex;
   align-items: center;
-  justify-content: ${({ expanded }) => (expanded ? "start" : "center")};
-  padding: 8px 8px;
-  width: 90%;
+  padding: 6px;
+  width: 100%;
   font-weight: ${({ active }) =>
     active
       ? sharedTheme.typography.fontWeights.bold
@@ -74,6 +146,7 @@ const SidebarLink = styled(Link)<{
   background-color: ${({ active }) =>
     active ? "rgba(59, 72, 94)" : "transparent"};
   pointer-events: ${({ disabled }) => (disabled ? "none" : "auto")};
+  transition: background-color 0.2s ease;
 
   &:hover {
     background-color: ${({ disabled }) =>
@@ -89,22 +162,38 @@ const SidebarButton = styled.button<{
   background: none;
   border: none;
   cursor: ${({ disabled }) => (disabled ? "not-allowed" : "pointer")};
-  margin: ${sharedTheme.spacing.xs} 0;
   display: flex;
   align-items: center;
-  justify-content: ${({ expanded }) => (expanded ? "start" : "center")};
-  padding: 8px 8px;
-  width: 90%;
+  padding: 6px;
+  width: 100%;
   font-weight: ${sharedTheme.typography.fontWeights.medium};
   font-size: ${sharedTheme.typography.fontSizes.sm};
   border-radius: ${sharedTheme.borderRadius.md};
   background-color: transparent;
   pointer-events: ${({ disabled }) => (disabled ? "none" : "auto")};
+  transition: background-color 0.2s ease;
 
   &:hover {
     background-color: ${({ disabled }) =>
       disabled ? "transparent" : "rgba(59, 72, 94)"};
   }
+`;
+
+const Badge = styled.span`
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background-color: red;
+  color: white;
+  border-radius: 50%;
+  font-size: 8px;
+  width: 13px;
+  height: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  z-index: 1;
 `;
 
 const Sidebar = () => {
@@ -255,7 +344,7 @@ const Sidebar = () => {
 
   // Determine user type - fallback to influencer if not set
   const userType: "influencer" | "brand" =
-    user?.userType === "BRAND" ? "brand" : "influencer";
+    user?.userType === "BRAND" ? "brand" : "brand";
 
   // Filter nav items based on userType
   const filteredNavItems = navItems.filter((item) => {
@@ -270,44 +359,16 @@ const Sidebar = () => {
   return (
     <>
       <SidebarWrapper expanded={isExpanded}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: isExpanded ? "space-between" : "center",
-            alignItems: "center",
-            width: "100%",
-            marginBottom: sharedTheme.spacing.md,
-          }}
-        >
-          {isExpanded && (
-            <div
-              style={{
-                fontSize: sharedTheme.typography.fontSizes.xxl,
-                fontWeight: sharedTheme.typography.fontWeights.bold,
-                color: sharedTheme.colorVariants.primary.light,
-                whiteSpace: "nowrap",
-              }}
-            >
-              Vibeco
-            </div>
-          )}
-          <button
+        <SidebarHeader expanded={isExpanded}>
+          <LogoText expanded={isExpanded}>Vibeco</LogoText>
+          <ToggleButton
+            expanded={isExpanded}
             onClick={toggleSidebar}
-            style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              color: lightTheme.colors.sidebarText,
-            }}
             title={isExpanded ? "Collapse" : "Expand"}
           >
-            {isExpanded ? (
-              <ChevronLeft size={18} />
-            ) : (
-              <ChevronRight size={18} />
-            )}
-          </button>
-        </div>
+            {isExpanded ? <PanelLeft size={24} /> : <PanelRight size={24} />}
+          </ToggleButton>
+        </SidebarHeader>
 
         {filteredNavItems.map((item, index) => {
           if (item.divider) return <SidebarDivider key={`divider-${index}`} />;
@@ -319,96 +380,70 @@ const Sidebar = () => {
           // Handle logout button differently
           if (item.isLogout) {
             return (
-              <SidebarButton
-                key="logout-button"
-                expanded={isExpanded}
-                disabled={isLoggingOut}
-                onClick={item.onClick}
-                style={{
-                  opacity: isLoggingOut ? 0.6 : 1,
-                  cursor: isLoggingOut ? "not-allowed" : "pointer",
-                }}
-              >
-                <Tooltip title={isLoggingOut ? "Logging out..." : item.label}>
-                  <div style={{ position: "relative", display: "inline-flex" }}>
-                    {IconComponent && (
-                      <IconComponent
-                        size={18}
-                        style={{
-                          marginRight: isExpanded ? "8px" : "0",
-                        }}
-                      />
-                    )}
-                  </div>
-                </Tooltip>
-                {isExpanded && <span>{item.label}</span>}
-              </SidebarButton>
+              <NavItemContainer key="logout-button" expanded={isExpanded}>
+                <SidebarButton
+                  expanded={isExpanded}
+                  disabled={isLoggingOut}
+                  onClick={item.onClick}
+                  style={{
+                    opacity: isLoggingOut ? 0.6 : 1,
+                    cursor: isLoggingOut ? "not-allowed" : "pointer",
+                  }}
+                >
+                  <IconContainer expanded={isExpanded}>
+                    {IconComponent && <IconComponent size={18} />}
+                  </IconContainer>
+                  <TextContainer expanded={isExpanded}>
+                    {item.label}
+                  </TextContainer>
+                </SidebarButton>
+              </NavItemContainer>
             );
           }
 
           // Regular navigation items
           return (
-            <SidebarLink
-              key={item.to}
-              to={item.to!}
-              active={isActive}
-              expanded={isExpanded}
-              disabled={isDisabled}
-              style={{
-                ...(item.highlight ? { color: "#FFD700" } : {}),
-                ...(isDisabled ? { cursor: "not-allowed", opacity: 0.6 } : {}),
-              }}
-              onClick={(e) => {
-                if (isDisabled) {
-                  e.preventDefault();
-                }
-              }}
-            >
-              <Tooltip title={item.label}>
-                <div style={{ position: "relative", display: "inline-flex" }}>
+            <NavItemContainer key={item.to} expanded={isExpanded}>
+              <SidebarLink
+                to={item.to!}
+                active={isActive}
+                expanded={isExpanded}
+                disabled={isDisabled}
+                style={{
+                  ...(isDisabled
+                    ? { cursor: "not-allowed", opacity: 0.6 }
+                    : {}),
+                }}
+                onClick={(e) => {
+                  if (isDisabled) {
+                    e.preventDefault();
+                  }
+                }}
+              >
+                <IconContainer expanded={isExpanded}>
                   {IconComponent && (
                     <IconComponent
-                      size={18}
+                      size={16}
                       style={{
-                        marginRight: isExpanded ? "8px" : "0",
                         ...(item.highlight ? { color: "#FFD700" } : {}),
                       }}
                     />
                   )}
-                  {item.badge && (
-                    <span
-                      style={{
-                        position: "absolute",
-                        top: "-5px",
-                        right: "4px",
-                        backgroundColor: "red",
-                        color: "white",
-                        borderRadius: "50%",
-                        fontSize: "8px",
-                        width: "13px",
-                        height: "13px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      {item.badge}
-                    </span>
-                  )}
-                </div>
-              </Tooltip>
-              {isExpanded && (
-                <span
-                  style={{
-                    ...(item.highlight ? { color: "#FFD700" } : {}),
-                    ...(isDisabled ? { color: "#aaa" } : {}),
-                  }}
-                >
-                  {item.label}
-                </span>
-              )}
-            </SidebarLink>
+                  {item.badge && <Badge>{item.badge}</Badge>}
+                </IconContainer>
+                {isExpanded && (
+                  <TextContainer
+                    expanded={isExpanded}
+                    style={{
+                      ...(item.highlight ? { color: "#FFD700" } : {}),
+                      ...(isDisabled ? { color: "#aaa" } : {}),
+                    }}
+                  >
+                    {item.label}
+                  </TextContainer>
+                )}
+              </SidebarLink>
+            </NavItemContainer>
           );
         })}
       </SidebarWrapper>

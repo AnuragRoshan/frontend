@@ -443,7 +443,7 @@ const CampaignCardActions = styled.div`
 const DraftActions = styled.div`
   display: flex;
   gap: 0.5rem;
-  flex-wrap: wrap;
+  /* flex-wrap: wrap; */
 `;
 
 const LiveActions = styled.div`

@@ -33,7 +33,7 @@ import ViewDetailsModal from "./ViewDetailModal";
 import { useNavigate } from "react-router-dom";
 
 // Types - Enhanced with counter-offer support
-interface CounterOffer {
+export interface CounterOffer {
   id: string;
   fromType: "brand" | "influencer";
   amount: string;
@@ -42,7 +42,7 @@ interface CounterOffer {
   isActive: boolean;
 }
 
-interface Deal {
+export interface Deal {
   id: string;
   title: string;
   brand: string;
@@ -1080,7 +1080,7 @@ const SearchIcon = styled.div`
 `;
 
 const SearchInput = styled.input`
-  width: 100%;
+  width: 85%;
   padding: ${sharedTheme.spacing.sm} ${sharedTheme.spacing.sm}
     ${sharedTheme.spacing.sm} 2.5rem;
   border: 1px solid #e5e7eb;
